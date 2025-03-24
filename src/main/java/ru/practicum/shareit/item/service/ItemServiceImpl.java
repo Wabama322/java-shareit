@@ -32,7 +32,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto updateItem(long userId, long itemId, ItemDto itemDto) {
-        Item oldItem = getItem(itemRepository.getItem(itemId).get().getItemId());
+        Item oldItem = getItem(itemRepository.getItem(itemId).get().getId());
         long owner = oldItem.getOwnerId();
         if (userId != owner) {
             throw new ObjectForbiddenException("У пользователя с ID {} нет доступа к вещи");

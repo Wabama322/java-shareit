@@ -18,8 +18,8 @@ public class ItemRepositoryImpl implements ItemRepository {
         if (items.containsValue(item)) {
             throw new ObjectNotFoundException("Такой объект уже существует");
         }
-        item.setItemId(id++);
-        items.put(item.getItemId(), item);
+        item.setId(id++);
+        items.put(item.getId(), item);
         return item;
     }
 
