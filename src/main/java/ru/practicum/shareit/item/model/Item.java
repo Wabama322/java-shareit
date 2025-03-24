@@ -19,7 +19,7 @@ import ru.practicum.shareit.request.ItemRequest;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Item {
-    Long Id;
+    Long id;
     @NotBlank(message = "Поле не может быть пустым")
     String name;
     @NotBlank(message = "Поле не может быть пустым")
