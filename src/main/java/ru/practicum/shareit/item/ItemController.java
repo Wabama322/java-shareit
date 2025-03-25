@@ -3,52 +3,61 @@ package ru.practicum.shareit.item;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.item.utill.Constants;
 
 import java.util.List;
-
-/**
- * TODO Sprint add-controllers.
- */
 
 @Slf4j
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
 public class ItemController {
-    private final ItemService service;
-    static final String userHeader = "X-Sharer-User-Id";
+    private final ItemService itemService;
 
     @PostMapping
-    public ItemDto addItem(@RequestHeader(userHeader) long userId, @Valid @RequestBody ItemDto item) {
-        log.info("Получил POST запрос на создание вещи");
-        return service.addItem(userId, item);
+    public ResponseEntity<ItemDto> addItem(
+            @RequestHeader(Constants.USER_HEADER) long userId,
+            @Valid @RequestBody ItemDto itemDto) {
+
+        log.info("Создание вещи для пользователя {}: {}", userId, itemDto);
+        ItemDto createdItem = itemService.addItem(userId, itemDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdItem);
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto updateItem(@RequestHeader(userHeader) long userId, @PathVariable long itemId,
-                              @RequestBody ItemDto itemDto) {
-        log.info("Получил PATCH запрос на обновление вещи");
-        return service.updateItem(userId, itemId, itemDto);
+    public ResponseEntity<ItemDto> updateItem(
+            @RequestHeader(Constants.USER_HEADER) long userId,
+            @PathVariable long itemId,
+            @RequestBody ItemDto itemDto) {
+
+        log.info("Обновление вещи {} для пользователя {}", itemId, userId);
+        return ResponseEntity.ok(itemService.updateItem(userId, itemId, itemDto));
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto getItem(@PathVariable long itemId) {
-        log.info("Получил GET запрос на получение вещи с id: {}", itemId);
-        return service.getItemDto(itemId);
+    public ResponseEntity<ItemDto> getItem(@PathVariable long itemId) {
+        log.info("Получение вещей: {}", itemId);
+        return ResponseEntity.ok(itemService.getItemDto(itemId));
     }
 
     @GetMapping
-    public List<ItemDto> getAllItemsUser(@RequestHeader(userHeader) long userId) {
-        log.info("Получил GET запрос на получение всех вещей пользователя с id: {}", userId);
-        return service.getAllItemsUser(userId);
+    public ResponseEntity<List<ItemDto>> getAllItemsUser(
+            @RequestHeader(Constants.USER_HEADER) long userId) {
+
+        log.info("Получение всех вещей для пользователя: {}", userId);
+        return ResponseEntity.ok(itemService.getAllItemsUser(userId));
     }
 
     @GetMapping("/search")
-    public List<ItemDto> getSearchOfText(@RequestParam String text) {
-        log.info("Получил GET запрос на получение всех вещей с текстом: {}", text);
-        return service.getSearchOfText(text);
+    public ResponseEntity<List<ItemDto>> searchItems(
+            @RequestParam String text) {
+
+        log.info("Поиск вещей с текстом: '{}'", text);
+        return ResponseEntity.ok(itemService.getSearchOfText(text));
     }
 }

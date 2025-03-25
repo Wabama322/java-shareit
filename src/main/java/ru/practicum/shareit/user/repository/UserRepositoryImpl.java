@@ -22,12 +22,13 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public Optional<User> getUser(long userId) {
-        if (!users.containsKey(userId)) {
+        User user = users.get(userId);
+        if (user == null) {
             log.info("Пользователя с id {} не существует", userId);
-            return Optional.empty();
+        } else {
+            log.info("Пользователь с id {} найден", userId);
         }
-        log.info("Пользователь с id {} найден", userId);
-        return Optional.of(users.get(userId));
+        return Optional.ofNullable(user);
     }
 
     @Override
