@@ -22,10 +22,10 @@ public class Comment {
     Long id;
     @NotBlank
     String text;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "item_id")
     Item item;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "author_id")
     User author;
     @Column(name = "created", nullable = false)

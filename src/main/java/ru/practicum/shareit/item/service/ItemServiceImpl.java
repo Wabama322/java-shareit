@@ -109,8 +109,7 @@ public class ItemServiceImpl implements ItemService {
     public CommentDtoResponse addComment(long itemId, long userId, CommentDtoRequest commentDtoRequest) {
         Item item = checkItem(itemId);
         User user = checkUser(userId);
-        Boolean checkValidate = bookingRepository.checkValidateBookingsFromItemAndStatus(itemId, userId,
-                Status.APPROVED, LocalDateTime.now());
+        Boolean checkValidate = bookingRepository.existsValidBooking(itemId, Status.APPROVED, LocalDateTime.now(), userId);
         if (!checkValidate) {
             throw new BadRequestException("Неверные параметры");
         }

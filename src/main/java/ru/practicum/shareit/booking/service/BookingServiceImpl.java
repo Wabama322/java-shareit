@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-
 public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
@@ -36,22 +35,24 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     @Override
     public BookingDtoResponse addBooking(long userId, BookingDtoRequest bookingDtoRequest) {
-        Item item = itemRepository.findById(bookingDtoRequest.getItemId()).orElseThrow(() ->
-                new NotFoundException("Вещь с id " +
-                        bookingDtoRequest.getItemId() + " не найдена"));
+        Item item = itemRepository.findById(bookingDtoRequest.getItemId())
+                .orElseThrow(() -> new NotFoundException("Вещь с id " + bookingDtoRequest.getItemId() + " не найдена"));
+
         if (!item.getAvailable()) {
             throw new BadRequestException("Вещь не доступна для бронирования");
         }
+
         User user = checkUser(userId);
         validateBooking(bookingDtoRequest, item, user);
+
         Booking booking = BookingMapper.toBooking(bookingDtoRequest, item, user);
         booking.setStatus(Status.WAITING);
-        booking.setItem(item);
-        booking.setBooker(user);
         Booking result = bookingRepository.save(booking);
+
         return BookingMapper.toBookingForResponseMapper(result);
     }
 
+    @Transactional
     @Override
     public BookingDtoResponse updateBooking(long bookingId, long userId, Boolean approved) {
         Booking booking = checkBooking(bookingId);
@@ -81,7 +82,6 @@ public class BookingServiceImpl implements BookingService {
                 booking1.getBooker().getId() == userId
                         || booking1.getItem().getOwner().getId() == userId).orElseThrow(() ->
                 new NotFoundException("Пользователь не является владельцем вещи "));
-        ;
         return BookingMapper.toBookingForResponseMapper(booking);
     }
 
@@ -95,26 +95,30 @@ public class BookingServiceImpl implements BookingService {
 
         switch (stateBooking) {
             case ALL:
-                result = bookingRepository.findAllBookingsByBooker(userId);
+                result = bookingRepository.findByBookerIdOrderByStartDesc(userId);
                 break;
             case CURRENT:
-                result = bookingRepository.findAllCurrentBookingsByBooker(userId, now);
+                result = bookingRepository.findByBookerIdAndStartLessThanEqualAndEndGreaterThanEqualOrderByStartDesc(
+                        userId, now, now);
                 break;
             case PAST:
-                result = bookingRepository.findAllPastBookingsByBooker(userId, now, Status.APPROVED);
+                result = bookingRepository.findByBookerIdAndEndBeforeAndStatusOrderByStartDesc(
+                        userId, now, Status.APPROVED);
                 break;
             case FUTURE:
-                result = bookingRepository.findAllFutureBookingsByBooker(userId, now);
+                result = bookingRepository.findByBookerIdAndStartAfterOrderByStartDesc(userId, now);
                 break;
             case WAITING:
-                result = bookingRepository.findAllWaitingBookingsByBooker(userId, Status.WAITING);
+                result = bookingRepository.findWaitingBookingsByBooker(userId);
                 break;
             case REJECTED:
-                result = bookingRepository.findAllBookingsByBooker(userId, Status.REJECTED, Status.CANCELED);
+                result = bookingRepository.findByBookerIdAndStatusIn(
+                        userId, List.of(Status.REJECTED, Status.CANCELED));
                 break;
         }
 
-        return result.stream().map(BookingMapper::toBookingForResponseMapper)
+        return result.stream()
+                .map(BookingMapper::toBookingForResponseMapper)
                 .collect(Collectors.toList());
     }
 
@@ -128,22 +132,24 @@ public class BookingServiceImpl implements BookingService {
 
         switch (stateBooking) {
             case ALL:
-                result = bookingRepository.findAllBookingsOwner(userId);
+                result = bookingRepository.findByItemOwnerIdOrderByStartDesc(userId);
                 break;
             case CURRENT:
-                result = bookingRepository.findAllCurrentBookingsByOwner(userId, now);
+                result = bookingRepository.findByItemOwnerIdAndStartLessThanEqualAndEndGreaterThanEqualOrderByStartDesc(
+                        userId, now, now);
                 break;
             case PAST:
-                result = bookingRepository.findAllPastBookingsByOwner(userId, now, Status.APPROVED);
+                result = bookingRepository.findByItemOwnerIdAndEndBeforeAndStatusOrderByStartDesc(
+                        userId, now, Status.APPROVED);
                 break;
             case FUTURE:
-                result = bookingRepository.findAllFutureBookingsByOwner(userId, now);
+                result = bookingRepository.findByItemOwnerIdAndStartAfterOrderByStartDesc(userId, now);
                 break;
             case WAITING:
-                result = bookingRepository.findAllWaitingBookingsByOwner(userId, Status.WAITING);
+                result = bookingRepository.findWaitingBookingsByOwner(userId);
                 break;
             case REJECTED:
-                result = bookingRepository.findAllBookingsByOwner(userId, Status.REJECTED, Status.CANCELED);
+                result = bookingRepository.findByOwnerAndStatusIn(userId, Status.REJECTED, Status.CANCELED);
                 break;
         }
 
@@ -167,8 +173,9 @@ public class BookingServiceImpl implements BookingService {
         if (item.getOwner().getId().equals(booker.getId())) {
             throw new ValidationException("Нельзя забронировать свою вещь");
         }
-        List<Booking> bookings = bookingRepository.checkValidateBookings(item.getId(), bookingDtoRequest.getStart());
-        if (bookings != null && !bookings.isEmpty()) {
+        List<Booking> bookings = bookingRepository.findByItemIdAndStartLessThanEqualAndEndGreaterThanEqual(
+                item.getId(), bookingDtoRequest.getStart(), bookingDtoRequest.getStart());
+        if (!bookings.isEmpty()) {
             throw new BadRequestException("Найдено пересечение бронирований на вещь " + item.getName());
         }
     }
