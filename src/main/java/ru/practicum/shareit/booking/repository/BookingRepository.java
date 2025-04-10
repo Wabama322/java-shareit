@@ -60,17 +60,17 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findRejectedBookingsByOwner(Long ownerId);
 
     @Query("""
-        select new java.lang.Boolean(COUNT(b) > 0) 
-        from Booking b 
-        where (b.item.id = ?1 and b.status = ?2 and b.end = ?3 or b.end < ?3) 
+        select new java.lang.Boolean(COUNT(b) > 0)
+        from Booking b
+        where (b.item.id = ?1 and b.status = ?2 and b.end = ?3 or b.end < ?3)
         and b.booker.id = ?4
     """)
     Boolean existsValidBooking(Long itemId, Status status, LocalDateTime end, Long userId);
 
     @Query("""
-    select b from Booking b 
-    where b.booker.id = :userId 
-    and b.status in :statuses 
+    select b from Booking b
+    where b.booker.id = :userId
+    and b.status in :statuses
     order by b.start DESC
 """)
     List<Booking> findByBookerIdAndStatusIn(
@@ -78,9 +78,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("statuses") List<Status> statuses);
 
     @Query("""
-        select b from Booking b 
-        where b.item.owner.id = ?1 
-        and (b.status = ?2 or b.status = ?3) 
+        select b from Booking b
+        where b.item.owner.id = ?1
+        and (b.status = ?2 or b.status = ?3)
         order by b.start DESC
     """)
     List<Booking> findByOwnerAndStatusIn(Long ownerId, Status status1, Status status2);
