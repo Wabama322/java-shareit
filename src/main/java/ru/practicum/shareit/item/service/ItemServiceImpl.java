@@ -109,11 +109,20 @@ public class ItemServiceImpl implements ItemService {
     public CommentDtoResponse addComment(long itemId, long userId, CommentDtoRequest commentDtoRequest) {
         Item item = checkItem(itemId);
         User user = checkUser(userId);
-        Boolean checkValidate = bookingRepository.existsValidBooking(itemId, Status.APPROVED, LocalDateTime.now(), userId);
-        if (!checkValidate) {
-            throw new BadRequestException("Неверные параметры");
+
+        boolean isValid = bookingRepository.existsValidBooking(
+                itemId,
+                Status.APPROVED,
+                LocalDateTime.now(),
+                userId
+        );
+
+        if (!isValid) {
+            throw new BadRequestException("Нельзя оставить комментарий: бронирование не найдено или не завершено");
         }
+
         Comment comment = CommentMapper.toComment(commentDtoRequest, item, user);
+        comment.setCreated(LocalDateTime.now());
         return CommentMapper.toCommentDtoResponse(commentRepository.save(comment));
     }
 
