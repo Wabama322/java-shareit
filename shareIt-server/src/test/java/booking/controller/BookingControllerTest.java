@@ -165,3 +165,4 @@ public class BookingControllerTest {
                 .andExpect(result -> Assertions.assertNotNull(result.getResolvedException()));
     }
 }
+
