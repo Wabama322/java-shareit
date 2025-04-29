@@ -3,6 +3,10 @@ package booking.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,6 +27,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -228,4 +233,84 @@ class BookingServiceImplTest {
         assertThrows(BadRequestException.class,
                 () -> bookingService.getAllBookingByOwner("ALL", owner.getId(), -1, 0));
     }
+
+    @Test
+    void addBooking_WhenItemAlreadyBooked_ShouldThrowRuntimeException() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(booker));
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+        when(bookingRepository.findByItemIdAndStartLessThanEqualAndEndGreaterThanEqual(
+                eq(item.getId()), any(), any(), any()))
+                .thenReturn(List.of(new Booking()));
+
+        assertThrows(RuntimeException.class,
+                () -> bookingService.addBooking(booker.getId(), bookingDtoRequest));
+    }
+
+    @Test
+    void updateBooking_WhenRejected_ShouldReturnRejectedStatus() {
+        when(bookingRepository.findById(anyLong())).thenReturn(Optional.of(booking));
+
+        BookingForResponse result = bookingService.updateBooking(1L, owner.getId(), false);
+
+        assertNotNull(result);
+        assertEquals(REJECTED, result.getStatus());
+    }
+
+    @Test
+    void validateBooking_WhenEndBeforeStart_ShouldThrowBadRequestException() {
+        // Подготовка
+        BookingDtoRequest invalidRequest = new BookingDtoRequest();
+        invalidRequest.setStart(LocalDateTime.now().plusDays(2));
+        invalidRequest.setEnd(LocalDateTime.now().plusDays(1));
+        invalidRequest.setItemId(1L);
+
+        // Проверка
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> bookingService.validateBooking(invalidRequest, item, booker));
+
+        assertEquals("Некорректные даты бронирования", exception.getMessage());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ALL", "CURRENT", "PAST", "FUTURE", "WAITING", "REJECTED"})
+    void getAllBookingByUser_ShouldCallRepositoryMethod(String state) {
+        // Для состояния ALL настроим заглушку
+        if ("ALL".equals(state)) {
+            when(bookingRepository.findByBookerIdOrderByStartDesc(anyLong(), any()))
+                    .thenReturn(List.of(booking));
+        }
+
+        assertDoesNotThrow(() ->
+                bookingService.getAllBookingByUser(state, booker.getId(), 0, 10));
+    }
+
+    private static Stream<Arguments> provideStateTestCases() {
+        LocalDateTime now = LocalDateTime.now();
+        return Stream.of(
+                Arguments.of("ALL", now, 1),
+                Arguments.of("CURRENT", now, 1),
+                Arguments.of("PAST", now, 1),
+                Arguments.of("FUTURE", now, 1),
+                Arguments.of("WAITING", now, 1),
+                Arguments.of("REJECTED", now, 1)
+        );
+    }
+
+    @Test
+    void getAllBookingByOwner_WithPagination_ShouldUseCorrectPageable() {
+        // Подготовка
+        when(userRepository.existsById(anyLong())).thenReturn(true);
+        when(bookingRepository.findByItemOwnerIdOrderByStartDesc(anyLong(), any()))
+                .thenReturn(List.of(booking, booking));
+
+        // Вызов с разными параметрами пагинации
+        List<BookingForResponse> result1 = bookingService.getAllBookingByOwner("ALL", owner.getId(), 0, 2);
+        List<BookingForResponse> result2 = bookingService.getAllBookingByOwner("ALL", owner.getId(), 1, 1);
+
+        // Проверки
+        assertEquals(2, result1.size());
+        verify(bookingRepository).findByItemOwnerIdOrderByStartDesc(eq(owner.getId()),
+                argThat(page -> page.getPageNumber() == 0 && page.getPageSize() == 2));
+    }
+
 }
