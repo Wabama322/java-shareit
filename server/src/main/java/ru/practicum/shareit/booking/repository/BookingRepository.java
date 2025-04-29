@@ -60,30 +60,25 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("select b from Booking b where b.item.owner.id = ?1 and b.status = 'REJECTED' order by b.start DESC")
     List<Booking> findRejectedBookingsByOwner(Long ownerId, Pageable pageable);
 
-    @Query("""
-        select new java.lang.Boolean(COUNT(b) > 0)
-        from Booking b
-        where (b.item.id = ?1 and b.status = ?2 and b.end = ?3 or b.end < ?3)
-        and b.booker.id = ?4
-    """)
+    @Query("select new java.lang.Boolean(COUNT(b) > 0) " +
+            "from Booking b " +
+            "where b.item.id = ?1 and b.status = ?2 " +
+            "and (b.end = ?3 or b.end < ?3) " +
+            "and b.booker.id = ?4")
     Boolean existsValidBooking(Long itemId, Status status, LocalDateTime end, Long userId);
 
-    @Query("""
-    select b from Booking b
-    where b.booker.id = :userId
-    and b.status in :statuses
-    order by b.start DESC
-""")
+    @Query("select b from Booking b " +
+            "where b.booker.id = :userId " +
+            "and b.status in :statuses " +
+            "order by b.start DESC")
     List<Booking> findByBookerIdAndStatusIn(
             @Param("userId") Long userId,
             @Param("statuses") List<Status> statuses,
             Pageable pageable);
 
-    @Query("""
-        select b from Booking b
-        where b.item.owner.id = ?1
-        and (b.status = ?2 or b.status = ?3)
-        order by b.start DESC
-    """)
+    @Query("select b from Booking b " +
+            "where b.item.owner.id = ?1 " +
+            "and (b.status = ?2 or b.status = ?3) " +
+            "order by b.start DESC")
     List<Booking> findByOwnerAndStatusIn(Long ownerId, Status status1, Status status2, Pageable pageable);
 }
