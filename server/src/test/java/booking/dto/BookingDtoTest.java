@@ -52,20 +52,21 @@ public class BookingDtoTest {
         assertThat(result).extractingJsonPathNumberValue("$.booker.id").isEqualTo(1);
         assertThat(result).extractingJsonPathStringValue("$.booker.name").isEqualTo("Alena");
     }
-        @Test
-        void testBookingDtoRequest () throws IOException {
 
-            ItemWithBookingDto itemDto = ItemWithBookingDto.builder()
-                    .id(1L)
-                    .name("Ilay")
-                    .build();
+    @Test
+    void testBookingDtoRequest() throws IOException {
 
-            BookingDtoRequest bookingDto = BookingDtoRequest.builder()
-                    .itemId(itemDto.getId())
-                    .build();
-            JsonContent<BookingDtoRequest> result = jsonBookingDtoRequest.write(bookingDto);
+        ItemWithBookingDto itemDto = ItemWithBookingDto.builder()
+                .id(1L)
+                .name("Ilay")
+                .build();
 
-            assertThat(result).extractingJsonPathNumberValue("$.itemId")
-                    .isEqualTo(1);
-        }
+        BookingDtoRequest bookingDto = BookingDtoRequest.builder()
+                .itemId(itemDto.getId())
+                .build();
+        JsonContent<BookingDtoRequest> result = jsonBookingDtoRequest.write(bookingDto);
+
+        assertThat(result).extractingJsonPathNumberValue("$.itemId")
+                .isEqualTo(1);
     }
+}
