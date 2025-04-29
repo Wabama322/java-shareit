@@ -13,7 +13,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class UserDtoRequestTest {
+class UserDtoTest {
     private static Validator validator;
 
     @BeforeAll
