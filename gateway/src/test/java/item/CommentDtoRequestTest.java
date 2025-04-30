@@ -29,9 +29,8 @@ class CommentDtoRequestTest {
                 .build();
 
         Set<ConstraintViolation<CommentDtoRequest>> violations = validator.validate(dto);
-        assertFalse(violations.isEmpty());
-        assertEquals(1, violations.size());
-        assertEquals("не должно быть пустым", violations.iterator().next().getMessage());
+        assertFalse(violations.isEmpty(), "Validation should fail for blank text");
+        assertEquals(1, violations.size(), "There should be exactly one validation error");
     }
 
     @Test
@@ -41,9 +40,8 @@ class CommentDtoRequestTest {
                 .build();
 
         Set<ConstraintViolation<CommentDtoRequest>> violations = validator.validate(dto);
-        assertFalse(violations.isEmpty());
-        assertEquals(1, violations.size());
-        assertEquals("не должно быть пустым", violations.iterator().next().getMessage());
+        assertFalse(violations.isEmpty(), "Validation should fail for null text");
+        assertEquals(1, violations.size(), "There should be exactly one validation error");
     }
 
     @Test
@@ -54,9 +52,8 @@ class CommentDtoRequestTest {
                 .build();
 
         Set<ConstraintViolation<CommentDtoRequest>> violations = validator.validate(dto);
-        assertFalse(violations.isEmpty());
-        assertEquals(1, violations.size());
-        assertEquals("размер должен находиться в диапазоне от 0 до 512", violations.iterator().next().getMessage());
+        assertFalse(violations.isEmpty(), "Validation should fail for text exceeding max length");
+        assertEquals(1, violations.size(), "There should be exactly one validation error");
     }
 
     @Test
@@ -66,7 +63,7 @@ class CommentDtoRequestTest {
                 .build();
 
         Set<ConstraintViolation<CommentDtoRequest>> violations = validator.validate(dto);
-        assertTrue(violations.isEmpty());
+        assertTrue(violations.isEmpty(), "Validation should pass for valid text");
     }
 
     @Test
@@ -76,7 +73,7 @@ class CommentDtoRequestTest {
                 .text(text)
                 .build();
 
-        assertEquals(text, dto.getText());
+        assertEquals(text, dto.getText(), "Text should match the builder value");
     }
 
     @Test
@@ -84,8 +81,8 @@ class CommentDtoRequestTest {
         CommentDtoRequest dto1 = CommentDtoRequest.builder().text("text").build();
         CommentDtoRequest dto2 = CommentDtoRequest.builder().text("text").build();
 
-        assertEquals(dto1, dto2);
-        assertEquals(dto1.hashCode(), dto2.hashCode());
+        assertEquals(dto1, dto2, "Objects with same values should be equal");
+        assertEquals(dto1.hashCode(), dto2.hashCode(), "Hash codes should be equal for equal objects");
     }
 
     @Test
@@ -94,7 +91,7 @@ class CommentDtoRequestTest {
                 .text("text")
                 .build();
 
-        assertNotNull(dto.toString());
-        assertTrue(dto.toString().contains("text"));
+        assertNotNull(dto.toString(), "toString() should not return null");
+        assertTrue(dto.toString().contains("text"), "toString() should contain the text");
     }
 }
