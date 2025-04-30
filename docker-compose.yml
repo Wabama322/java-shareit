@@ -6,9 +6,15 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - shareit-server
+      shareit-server:
+        condition: service_healthy
     environment:
       - SHAREIT_SERVER_URL=http://shareit-server:9090
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   shareit-server:
     build: ./shareit-server
@@ -23,9 +29,16 @@ services:
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
       - SPRING_AUTOCONFIGURE_EXCLUDE=org.springframework.boot.autoconfigure.h2.H2ConsoleAutoConfiguration
+      - SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT=30000
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
 
   db:
     image: postgres:16.1
@@ -35,13 +48,16 @@ services:
       - POSTGRES_DB=shareitdb
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=e0gD0os9
+      - POSTGRES_HOST_AUTH_METHOD=trust
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d shareitdb"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 20
+      start_period: 20s
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
 
 volumes:
   postgres_data:
