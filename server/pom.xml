@@ -125,24 +125,20 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>${spring-boot.version}</version>
+				<configuration>
+					<mainClass>ru.practicum.shareit.ShareItServer</mainClass>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
 				<executions>
 					<execution>
-						<id>repackage</id>
-						<configuration>
-							<classifier>boot</classifier>
-							<skip>true</skip>
-						</configuration>
-					</execution>
-					<execution>
-						<id>repackage-attached</id>
-						<phase>package</phase>
 						<goals>
 							<goal>repackage</goal>
 						</goals>
-						<configuration>
-							<classifier>boot</classifier>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
