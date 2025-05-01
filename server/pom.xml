@@ -11,6 +11,7 @@
 
 	<artifactId>shareit-server</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+
 	<name>ShareIt Server</name>
 
 	<properties>
@@ -20,6 +21,7 @@
 		<junit.version>5.9.3</junit.version>
 		<mockito.version>5.3.1</mockito.version>
 		<assertj.version>3.24.2</assertj.version>
+		<spring-boot.version>3.1.5</spring-boot.version>
 	</properties>
 
 	<dependencies>
@@ -123,20 +125,24 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<mainClass>ru.practicum.shareit.ShareItServer</mainClass>
-					<excludes>
-						<exclude>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</exclude>
-					</excludes>
-				</configuration>
+				<version>${spring-boot.version}</version>
 				<executions>
 					<execution>
+						<id>repackage</id>
+						<configuration>
+							<classifier>boot</classifier>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+					<execution>
+						<id>repackage-attached</id>
+						<phase>package</phase>
 						<goals>
 							<goal>repackage</goal>
 						</goals>
+						<configuration>
+							<classifier>boot</classifier>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -150,6 +156,13 @@
 					<source>${java.version}</source>
 					<target>${java.version}</target>
 				</configuration>
+			</plugin>
+
+			<!-- Maven Jar Plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.3.0</version>
 			</plugin>
 		</plugins>
 	</build>
