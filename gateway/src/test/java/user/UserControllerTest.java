@@ -73,17 +73,14 @@ public class UserControllerTest {
     }
 
     @Test
-    void addUserWithInvalidDataReturns500() throws Exception {
+    void addUserWithInvalidDataReturns400() throws Exception {
         UserDtoRequest invalidUser = new UserDtoRequest(null, "Alena", null);
         String invalidUserJson = objectMapper.writeValueAsString(invalidUser);
-
-        when(userClient.postUser(any(UserDtoRequest.class)))
-                .thenReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidUserJson))
-                .andExpect(status().isInternalServerError())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").exists());
 
         verify(userClient, never()).postUser(any(UserDtoRequest.class));

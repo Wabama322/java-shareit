@@ -99,9 +99,9 @@ public class ItemRequestControllerTest {
     void getAllItemRequestsWrongPageTest() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/requests/all")
                         .param("from", "5")
-                        .param("size", "-5") // Невалидный размер
+                        .param("size", "-5")
                         .header(Constants.USER_HEADER, "1"))
-                .andExpect(MockMvcResultMatchers.status().isInternalServerError()) // Ожидаем 500
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").exists());
 
         Mockito.verify(itemRequestClient, Mockito.never())

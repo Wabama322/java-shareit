@@ -77,7 +77,7 @@ public class BookingControllerTest {
                         .content(objectMapper.writeValueAsString(bookingDtoRequest))
                         .characterEncoding(StandardCharsets.UTF_8)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isInternalServerError()) // Ожидаем 500
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").exists());
 
         Mockito.verify(bookingClient, Mockito.never())
@@ -113,7 +113,7 @@ public class BookingControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get("/bookings/owner?state=UNICE")
                         .header(Constants.USER_HEADER, 1))
-                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").exists());
 
         mockMvc.perform(MockMvcRequestBuilders.get("/bookings/owner?state=WAITING")
@@ -122,7 +122,7 @@ public class BookingControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get("/bookings/owner?from=-1&size=0")
                         .header(Constants.USER_HEADER, 1))
-                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").exists());
     }
 
@@ -139,7 +139,7 @@ public class BookingControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get("/bookings?from=-1&size=0")
                         .header(Constants.USER_HEADER, 1))
-                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").exists());
     }
 

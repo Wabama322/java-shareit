@@ -38,7 +38,7 @@ public class ItemControllerTest {
                         .header(Constants.USER_HEADER, userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(itemDto)))
-                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").exists());
 
         Mockito.verify(itemClient, Mockito.never())
@@ -88,7 +88,7 @@ public class ItemControllerTest {
                         .param("from", "1")
                         .param("size", "0")
                         .header(Constants.USER_HEADER, "1"))
-                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").exists());
     }
 
@@ -98,7 +98,7 @@ public class ItemControllerTest {
                         .param("from", "-1")
                         .param("size", "-10")
                         .header(Constants.USER_HEADER, "1"))
-                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").exists());
 
         Mockito.verify(itemClient, Mockito.never())
