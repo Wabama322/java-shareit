@@ -125,13 +125,13 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>${spring-boot.version}</version>
+				<!--<version>${spring-boot.version}</version>-->
 				<executions>
 					<execution>
 						<id>repackage</id>
 						<configuration>
 							<classifier>boot</classifier>
-							<skip>true</skip>
+							<!--<skip>true</skip>-->
 						</configuration>
 					</execution>
 					<execution>
