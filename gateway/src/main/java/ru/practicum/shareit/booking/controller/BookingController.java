@@ -1,30 +1,28 @@
 package ru.practicum.shareit.booking.controller;
 
 import jakarta.validation.Valid;
-
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
-import org.springframework.stereotype.Controller;
-import ru.practicum.shareit.exception.UnsupportedStatusException;
-import ru.practicum.shareit.utill.Constants;
-import ru.practicum.shareit.booking.client.BookingClient;
-import ru.practicum.shareit.booking.dto.BookingDtoRequest;
-import ru.practicum.shareit.booking.dto.BookingState;
-import ru.practicum.shareit.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.booking.client.BookingClient;
+import ru.practicum.shareit.booking.dto.BookingDtoRequest;
+import ru.practicum.shareit.booking.dto.BookingState;
+import ru.practicum.shareit.exception.UnsupportedStatusException;
+import ru.practicum.shareit.user.client.UserClient;
+import ru.practicum.shareit.utill.Constants;
 
-@Controller
+@RestController
 @RequestMapping(path = "/bookings")
 @RequiredArgsConstructor
 @Slf4j
 @Validated
 public class BookingController {
-    private final UserRepository userRepository;
+    private final UserClient userClient;
     private final BookingClient bookingClient;
     private static final String PATH = "/{bookingId}";
 
@@ -72,7 +70,8 @@ public class BookingController {
             @PositiveOrZero @RequestParam(defaultValue = "0") int from,
             @Positive @RequestParam(defaultValue = "10") int size) {
 
-        if (!userRepository.existsById(userId)) {
+        ResponseEntity<Object> userResponse = userClient.getUserById(userId);
+        if (userResponse.getStatusCode() == HttpStatus.NOT_FOUND) {
             log.warn("User not found: {}", userId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -83,7 +82,9 @@ public class BookingController {
                     throw new UnsupportedStatusException("Unknown state: " + state);
                 });
 
-        log.info("Requesting bookings for owner: userId={}", userId);
+        log.info("Requesting bookings for owner: userId={}, state={}, from={}, size={}",
+                userId, state, from, size);
+
         return bookingClient.getAllBookingsByOwner(userId, bookingState, from, size);
     }
 }
