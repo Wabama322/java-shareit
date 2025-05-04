@@ -19,12 +19,11 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     List<Item> findByRequestIdIn(List<Long> requestIds);
 
-    @Query("""
-          SELECT i FROM Item i
-          WHERE (UPPER(i.name) LIKE UPPER(CONCAT('%', :text, '%'))
-             OR UPPER(i.description) LIKE UPPER(CONCAT('%', :text, '%')))
-            AND i.available = TRUE
-          """)
+    @Query("SELECT i FROM Item i " +
+            "WHERE (UPPER(i.name) LIKE UPPER(CONCAT('%', :text, '%')) " +
+            "   OR UPPER(i.description) LIKE UPPER(CONCAT('%', :text, '%'))) " +
+            "  AND i.available = TRUE")
+
     Page<Item> searchAvailableItemsByNameOrDescription(
             @Param("text") String text,
             Pageable pageable
