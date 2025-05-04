@@ -1,21 +1,22 @@
 package ru.practicum.shareit.booking.controller;
 
 import jakarta.validation.Valid;
+
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
+import org.springframework.stereotype.Controller;
+import ru.practicum.shareit.exception.UnsupportedStatusException;
+import ru.practicum.shareit.utill.Constants;
+import ru.practicum.shareit.booking.client.BookingClient;
+import ru.practicum.shareit.booking.dto.BookingDtoRequest;
+import ru.practicum.shareit.booking.dto.BookingState;
+import ru.practicum.shareit.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.booking.client.BookingClient;
-import ru.practicum.shareit.booking.dto.BookingDtoRequest;
-import ru.practicum.shareit.booking.dto.BookingState;
-import ru.practicum.shareit.exception.UnsupportedStatusException;
-import ru.practicum.shareit.user.repository.UserRepository;
-import ru.practicum.shareit.utill.Constants;
 
 @Controller
 @RequestMapping(path = "/bookings")
