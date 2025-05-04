@@ -101,7 +101,7 @@ public class ItemServiceImpl implements ItemService {
             return List.of();
         }
         Pageable pageable = PageRequest.of(from, size, Sort.unsorted());
-        List<Item> itemList = itemRepository.findByNameOrDescription(text, pageable).getContent();
+        List<Item> itemList = itemRepository.searchAvailableItemsByNameOrDescription(text, pageable).getContent();
         return itemList.stream().map(ItemMapper::toItemSearchOfTextDto).collect(toList());
     }
 

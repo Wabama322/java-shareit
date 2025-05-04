@@ -1,5 +1,6 @@
 package ru.practicum.shareit.user.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -16,38 +17,42 @@ import ru.practicum.shareit.validation.Create;
 @Slf4j
 @Validated
 public class UserController {
+    private static final String PATH_VARIABLE = "/{userId}";
 
     private final UserClient userClient;
-    static final String path = "/{user-id}";
 
     @PostMapping
-    public ResponseEntity<Object> addUser(@RequestBody @Validated({Create.class}) UserDtoRequest userDto) {
-        log.info("POST запрос на создание пользователя {}", userDto);
-        return userClient.postUser(userDto);
+    public ResponseEntity<Object> createUser(
+            @RequestBody @Validated({Create.class}) UserDtoRequest userDto) {
+        log.info("Creating user: {}", userDto);
+        return userClient.createUser(userDto);
     }
 
-    @GetMapping(path)
-    public ResponseEntity<Object> getUser(@PathVariable("user-id") Long userId) {
-        log.info("GET запрос на получение пользователя userId={}", userId);
-        return userClient.getUser(userId);
+    @GetMapping(PATH_VARIABLE)
+    public ResponseEntity<Object> getUserById(
+            @PathVariable("userId") long userId) {
+        log.info("Getting user by ID: {}", userId);
+        return userClient.getUserById(userId);
     }
 
     @GetMapping
-    public ResponseEntity<Object> getAll() {
-        log.info("GET запрос на получение всех пользователей");
+    public ResponseEntity<Object> getAllUsers() {
+        log.info("Getting all users");
         return userClient.getAllUsers();
     }
 
-    @PatchMapping(path)
-    public ResponseEntity<Object> updateUser(@RequestBody UserDtoRequest userDto,
-                                             @PathVariable("user-id") long userId) {
-        log.info("PATCH запрос на обновление пользователя userId={}, userDto={}", userId, userDto);
-        return userClient.patchUser(userDto, userId);
+    @PatchMapping(PATH_VARIABLE)
+    public ResponseEntity<Object> updateUser(
+            @RequestBody @Valid UserDtoRequest userDto,
+            @PathVariable("userId") long userId) {
+        log.info("Updating user ID {} with data: {}", userId, userDto);
+        return userClient.updateUser(userDto, userId);
     }
 
-    @DeleteMapping(path)
-    public ResponseEntity<Object> deleteUser(@PathVariable("user-id") long userId) {
-        log.info("DELETE запрос на удаление пользователя userId={}", userId);
-        return userClient.delete(userId);
+    @DeleteMapping(PATH_VARIABLE)
+    public ResponseEntity<Object> deleteUser(
+            @PathVariable("userId") long userId) {
+        log.info("Deleting user ID: {}", userId);
+        return userClient.deleteUser(userId);
     }
 }

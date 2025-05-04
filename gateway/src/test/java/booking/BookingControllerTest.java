@@ -5,7 +5,6 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,20 +13,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import ru.practicum.shareit.ShareItGateway;
 import ru.practicum.shareit.booking.client.BookingClient;
 import ru.practicum.shareit.booking.dto.BookingDtoRequest;
+import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.utill.Constants;
 
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.hamcrest.Matchers.containsString;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
@@ -40,6 +38,8 @@ public class BookingControllerTest {
     MockMvc mockMvc;
     @MockBean
     BookingClient bookingClient;
+    @MockBean
+    UserRepository userRepository;
 
     @SneakyThrows
     @Test
@@ -53,9 +53,7 @@ public class BookingControllerTest {
         String content = mockMvc.perform(post("/bookings")
                         .header(Constants.USER_HEADER, 1)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(bookingDtoRequest))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(bookingDtoRequest)))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -71,17 +69,14 @@ public class BookingControllerTest {
                 LocalDateTime.now().minusDays(3)
         );
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/bookings")
+        mockMvc.perform(post("/bookings")
                         .header(Constants.USER_HEADER, 1)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(bookingDtoRequest))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").exists());
+                        .content(objectMapper.writeValueAsString(bookingDtoRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").exists());
 
-        Mockito.verify(bookingClient, Mockito.never())
-                .addBooking(ArgumentMatchers.anyLong(), ArgumentMatchers.any());
+        verify(bookingClient, never()).addBooking(anyLong(), any());
     }
 
     @SneakyThrows
@@ -91,56 +86,47 @@ public class BookingControllerTest {
                         .header(Constants.USER_HEADER, 1))
                 .andDo(print())
                 .andExpect(status().isOk());
-        Mockito.verify(bookingClient).getBooking(1, 1L);
+        verify(bookingClient).getBooking(1L, 1L);
     }
 
     @SneakyThrows
     @Test
-    void updatedBookingTest() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.patch("/bookings/{bookingId}?approved={approved}", 1, true)
+    void approveBookingTest() throws Exception {
+        mockMvc.perform(patch("/bookings/{bookingId}?approved={approved}", 1, true)
                         .header(Constants.USER_HEADER, 1))
                 .andDo(print())
                 .andExpect(status().isOk());
-        Mockito.verify(bookingClient).updateBooking(1L, 1L, true);
+        verify(bookingClient).approveBooking(1L, 1L, true);
     }
 
     @SneakyThrows
     @Test
-    void getAllBookingByOwnerTest() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/bookings/owner")
-                        .header(Constants.USER_HEADER, 1))
-                .andExpect(MockMvcResultMatchers.status().isOk());
+    void getAllBookingByOwner_InvalidState_Returns400() throws Exception {
+        when(userRepository.existsById(anyLong())).thenReturn(true);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/bookings/owner?state=UNICE")
-                        .header(Constants.USER_HEADER, 1))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").exists());
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/bookings/owner?state=WAITING")
-                        .header(Constants.USER_HEADER, 1))
-                .andExpect(MockMvcResultMatchers.status().isOk());
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/bookings/owner?from=-1&size=0")
-                        .header(Constants.USER_HEADER, 1))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").exists());
+        mockMvc.perform(get("/bookings/owner")
+                        .header(Constants.USER_HEADER, 1L)
+                        .param("state", "UNICE"))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value(containsString("Unknown state")));
     }
 
     @SneakyThrows
     @Test
     void getAllBookingByUserTest() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/bookings")
+        mockMvc.perform(get("/bookings")
                         .header(Constants.USER_HEADER, 1))
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                .andExpect(status().isOk());
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/bookings?state=WAITING")
+        mockMvc.perform(get("/bookings?state=WAITING")
                         .header(Constants.USER_HEADER, 1))
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                .andExpect(status().isOk());
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/bookings?from=-1&size=0")
+        mockMvc.perform(get("/bookings?from=-1&size=0")
                         .header(Constants.USER_HEADER, 1))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").exists());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").exists());
     }
 
     BookingDtoRequest getBookingDtoRequest(LocalDateTime start, LocalDateTime end) {

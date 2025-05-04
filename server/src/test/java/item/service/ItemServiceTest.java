@@ -93,7 +93,7 @@ public class ItemServiceTest {
     public void getAllItemsWithBlankTextShouldReturnEmptyListTest() {
         String text = "";
         Pageable page = PageRequest.of(0, 10);
-        Page<Item> actualResult = itemRepository.findByNameOrDescription(text, page);
+        Page<Item> actualResult = itemRepository.searchAvailableItemsByNameOrDescription(text, page);
 
         assertNull(actualResult);
     }

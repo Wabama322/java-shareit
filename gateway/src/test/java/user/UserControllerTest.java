@@ -15,8 +15,6 @@ import ru.practicum.shareit.ShareItGateway;
 import ru.practicum.shareit.user.client.UserClient;
 import ru.practicum.shareit.user.dto.UserDtoRequest;
 
-import java.nio.charset.StandardCharsets;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
@@ -40,19 +38,19 @@ public class UserControllerTest {
         UserDtoRequest userDto = new UserDtoRequest(1L, "Ilay", "IlayLalala@gmail.com");
         String userJson = objectMapper.writeValueAsString(userDto);
         ResponseEntity<Object> response = new ResponseEntity<>(userJson, HttpStatus.OK);
-        when(userClient.postUser(any())).thenReturn(response);
+        when(userClient.createUser(any())).thenReturn(response);
+
         String result = mockMvc.perform(
                         post("/users")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(userDto))
-                                .characterEncoding(StandardCharsets.UTF_8)
-                                .accept(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-        Assertions.assertEquals(objectMapper.writeValueAsString(userDto), result);
+
+        Assertions.assertEquals(userJson, result);
     }
 
     @Test
@@ -60,7 +58,7 @@ public class UserControllerTest {
         UserDtoRequest validUser = new UserDtoRequest(1L, "Ilay", "valid@email.com");
         String validUserJson = objectMapper.writeValueAsString(validUser);
 
-        when(userClient.postUser(any(UserDtoRequest.class)))
+        when(userClient.createUser(any(UserDtoRequest.class)))
                 .thenReturn(ResponseEntity.ok(validUserJson));
 
         mockMvc.perform(post("/users")
@@ -69,7 +67,7 @@ public class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json(validUserJson));
 
-        verify(userClient, times(1)).postUser(any(UserDtoRequest.class));
+        verify(userClient, times(1)).createUser(any(UserDtoRequest.class));
     }
 
     @Test
@@ -83,9 +81,8 @@ public class UserControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").exists());
 
-        verify(userClient, never()).postUser(any(UserDtoRequest.class));
+        verify(userClient, never()).createUser(any(UserDtoRequest.class));
     }
-
 
     @Test
     void testPathUser() throws Exception {
@@ -93,30 +90,27 @@ public class UserControllerTest {
         UserDtoRequest userDtoUpdate = new UserDtoRequest(1L, "Alena", "AlenaNanana@gmail.com");
         String userJson = objectMapper.writeValueAsString(userDtoUpdate);
         ResponseEntity<Object> response = new ResponseEntity<>(userJson, HttpStatus.OK);
-        when(userClient.patchUser(any(), anyLong())).thenReturn(response);
+        when(userClient.updateUser(any(), anyLong())).thenReturn(response);
         String result = mockMvc.perform(
                         patch("/users/{userId}", 1L)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(userDto))
-                                .characterEncoding(StandardCharsets.UTF_8)
-                                .accept(MediaType.APPLICATION_JSON)
-                )
+                                .content(objectMapper.writeValueAsString(userDto)))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
 
-        Assertions.assertEquals(objectMapper.writeValueAsString(userDtoUpdate), result);
+        Assertions.assertEquals(userJson, result);
     }
 
     @Test
     void getUserTest() throws Exception {
-        int userId = 1;
+        long userId = 1L;
         mockMvc.perform(get("/users/{userId}", userId))
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(userClient).getUser(userId);
+        verify(userClient).getUserById(userId);
     }
 
     @Test
@@ -130,11 +124,11 @@ public class UserControllerTest {
 
     @Test
     void deleteUserTest() throws Exception {
-        int userId = 1;
+        long userId = 1L;
         mockMvc.perform(delete("/users/{userId}", userId))
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(userClient).delete(userId);
+        verify(userClient).deleteUser(userId);
     }
 }

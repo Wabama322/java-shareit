@@ -34,7 +34,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         User user = cheсkUser(userId);
         ItemRequest itemRequest = ItemRequestDtoMapper.toItemRequest(itemRequestDto, user);
         ItemRequest addRequests = requestRepository.save(itemRequest);
-        List<Item> items = itemRepository.findAllByRequestId(addRequests.getId());
+        List<Item> items = itemRepository.findByRequestId(addRequests.getId());
         addRequests.setItems(items);
         return ItemRequestDtoMapper.toItemRequestResponseDto(addRequests);
     }
@@ -45,7 +45,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         cheсkUser(userId);
         List<ItemRequest> itemRequests = requestRepository.findItemRequestsByUserId(userId);
         for (ItemRequest itemRequest : itemRequests) {
-            List<Item> items = itemRepository.findAllByRequestId(itemRequest.getId());
+            List<Item> items = itemRepository.findByRequestId(itemRequest.getId());
             itemRequest.setItems(items);
         }
         return ItemRequestDtoMapper.toItemRequestsResponseDto(itemRequests);
@@ -59,7 +59,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         }
         Sort sort = Sort.by(Sort.Direction.DESC, "created");
         Pageable pageable = PageRequest.of(from / size, size, sort);
-        List<ItemRequest> itemRequests = requestRepository.findAllByNotRequesterId(userId, pageable).getContent();
+        List<ItemRequest> itemRequests = requestRepository.findByNotRequesterId(userId, pageable).getContent();
         addItems(itemRequests);
         return ItemRequestDtoMapper.toItemRequestsResponseDto(itemRequests);
     }
@@ -69,7 +69,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         cheсkUser(userId);
         ItemRequest itemRequest = requestRepository.findById(requestId).orElseThrow(() ->
                 new NotFoundException("Запрос c ID " + requestId + " не найден"));
-        List<Item> items = itemRepository.findAllByRequestId(itemRequest.getId());
+        List<Item> items = itemRepository.findByRequestId(itemRequest.getId());
         itemRequest.setItems(items);
         return ItemRequestDtoMapper.toItemRequestResponseDto(itemRequest);
     }

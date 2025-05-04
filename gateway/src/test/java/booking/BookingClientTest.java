@@ -10,7 +10,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import ru.practicum.shareit.booking.client.BookingClient;
@@ -19,8 +18,7 @@ import ru.practicum.shareit.booking.dto.BookingState;
 
 import java.util.function.Supplier;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -45,9 +43,6 @@ class BookingClientTest {
     void setUp() {
         RestTemplateBuilder builder = mock(RestTemplateBuilder.class);
 
-        Supplier<HttpComponentsClientHttpRequestFactory> requestFactorySupplier =
-                () -> new HttpComponentsClientHttpRequestFactory();
-
         when(builder.uriTemplateHandler(any())).thenReturn(builder);
         when(builder.requestFactory(any(Supplier.class))).thenReturn(builder);
         when(builder.build()).thenReturn(restTemplate);
@@ -56,7 +51,7 @@ class BookingClientTest {
     }
 
     @Test
-    void getAllBookingByUser_ShouldCallGetWithCorrectParameters() {
+    void getAllBookingsByUser_ShouldCallGetWithCorrectParameters() {
         when(restTemplate.exchange(
                 anyString(),
                 eq(HttpMethod.GET),
@@ -65,7 +60,7 @@ class BookingClientTest {
                 anyMap()
         )).thenReturn(new ResponseEntity<>(HttpStatus.OK));
 
-        ResponseEntity<Object> response = bookingClient.getAllBookingByUser(userId, state, from, size);
+        ResponseEntity<Object> response = bookingClient.getAllBookingsByUser(userId, state, from, size);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -102,7 +97,7 @@ class BookingClientTest {
     }
 
     @Test
-    void updateBooking_ShouldCallPatchWithCorrectParameters() {
+    void approveBooking_ShouldCallPatchWithCorrectParameters() {
         when(restTemplate.exchange(
                 anyString(),
                 eq(HttpMethod.PATCH),
@@ -111,14 +106,14 @@ class BookingClientTest {
                 anyMap()
         )).thenReturn(new ResponseEntity<>(HttpStatus.OK));
 
-        ResponseEntity<Object> response = bookingClient.updateBooking(bookingId, userId, true);
+        ResponseEntity<Object> response = bookingClient.approveBooking(userId, bookingId, true);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
-    void getAllBookingByOwner_ShouldReturnErrorResponseWhenExceptionThrown() {
+    void getAllBookingsByOwner_ShouldReturnErrorResponseWhenExceptionThrown() {
         HttpClientErrorException exception = new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Bad Request");
 
         when(restTemplate.exchange(
@@ -129,13 +124,13 @@ class BookingClientTest {
                 anyMap()
         )).thenThrow(exception);
 
-        ResponseEntity<Object> response = bookingClient.getAllBookingByOwner(userId, state, from, size);
+        ResponseEntity<Object> response = bookingClient.getAllBookingsByOwner(userId, state, from, size);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
-    void getAllBookingByOwner_ShouldReturnInternalServerErrorOnUnexpectedException() {
+    void getAllBookingsByOwner_ShouldReturnInternalServerErrorOnUnexpectedException() {
         when(restTemplate.exchange(
                 anyString(),
                 eq(HttpMethod.GET),
@@ -144,8 +139,10 @@ class BookingClientTest {
                 anyMap()
         )).thenThrow(new RuntimeException("Unexpected error"));
 
-        ResponseEntity<Object> response = bookingClient.getAllBookingByOwner(userId, state, from, size);
+        ResponseEntity<Object> response = bookingClient.getAllBookingsByOwner(userId, state, from, size);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().toString().contains("Internal server error"));
     }
 }

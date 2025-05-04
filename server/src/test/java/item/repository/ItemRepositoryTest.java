@@ -65,7 +65,7 @@ class ItemRepositoryTest {
     void searchItemsByTextTest() {
         Pageable pageable = PageRequest.of(0, 10, Sort.unsorted());
         List<Item> itemList =
-                itemRepository.findByNameOrDescription("it", pageable).getContent();
+                itemRepository.searchAvailableItemsByNameOrDescription("it", pageable).getContent();
 
         assertNotNull(itemList);
         assertEquals(2, itemList.size());
@@ -76,7 +76,7 @@ class ItemRepositoryTest {
         String text = "text";
         Pageable page = PageRequest.of(0, 10);
 
-        Page<Item> actualResult = itemRepository.findByNameOrDescription(text, page);
+        Page<Item> actualResult = itemRepository.searchAvailableItemsByNameOrDescription(text, page);
         assertEquals(List.of(), actualResult.getContent());
     }
 
@@ -89,14 +89,14 @@ class ItemRepositoryTest {
     }
 
     @Test
-    public void findAllByRequestIdTest() {
+    public void findByRequestIdTest() {
         itemRepository.save(Item.builder()
                 .name("Banana")
                 .description("banana")
                 .available(true)
                 .owner(user)
                 .build());
-        List<Item> actualResult = itemRepository.findAllByRequestId(user.getId());
+        List<Item> actualResult = itemRepository.findByRequestId(user.getId());
 
         assertNotNull(actualResult);
         assertEquals(0, actualResult.size());

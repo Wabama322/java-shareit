@@ -10,9 +10,6 @@ import ru.practicum.shareit.utill.Constants;
 
 import java.util.List;
 
-/**
- * TODO Sprint add-bookings.
- */
 @Slf4j
 @RestController
 @RequestMapping(path = "/bookings")

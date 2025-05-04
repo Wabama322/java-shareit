@@ -3,11 +3,9 @@ package ru.practicum.shareit.booking.client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.booking.dto.BookingDtoRequest;
 import ru.practicum.shareit.booking.dto.BookingState;
@@ -29,7 +27,7 @@ public class BookingClient extends BaseClient {
         );
     }
 
-    public ResponseEntity<Object> getAllBookingByUser(long userId, BookingState state, Integer from, Integer size) {
+    public ResponseEntity<Object> getAllBookingsByUser(long userId, BookingState state, int from, int size) {
         Map<String, Object> parameters = Map.of(
                 "state", state.name(),
                 "from", from,
@@ -42,33 +40,23 @@ public class BookingClient extends BaseClient {
         return post("", userId, requestDto);
     }
 
-    public ResponseEntity<Object> getBooking(long userId, Long bookingId) {
+    public ResponseEntity<Object> getBooking(long userId, long bookingId) {
         return get("/" + bookingId, userId);
-
     }
 
-    public ResponseEntity<Object> updateBooking(Long bookingId, Long ownerId, boolean approved) {
+    public ResponseEntity<Object> approveBooking(long userId, long bookingId, boolean approved) {
         Map<String, Object> parameters = Map.of(
                 "approved", approved
         );
-        return patch("/" + bookingId + "?approved={approved}", ownerId, parameters, null);
+        return patch("/" + bookingId + "?approved={approved}", userId, parameters, null);
     }
 
-    public ResponseEntity<Object> getAllBookingByOwner(Long userId, BookingState state, Integer from, Integer size) {
-        try {
-            Map<String, Object> parameters = Map.of(
-                    "state", state.name(),
-                    "from", from,
-                    "size", size
-            );
-            return get("/owner?state={state}&from={from}&size={size}", userId, parameters);
-        } catch (HttpClientErrorException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    Map.of("error", "Внутренняя ошибка сервера")
-            );
-        }
+    public ResponseEntity<Object> getAllBookingsByOwner(long userId, BookingState state, int from, int size) {
+        Map<String, Object> parameters = Map.of(
+                "state", state.name(),
+                "from", from,
+                "size", size
+        );
+        return get("/owner?state={state}&from={from}&size={size}", userId, parameters);
     }
 }
-

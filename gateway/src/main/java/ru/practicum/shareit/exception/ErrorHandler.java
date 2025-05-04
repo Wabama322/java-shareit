@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
@@ -49,4 +50,12 @@ public class ErrorHandler {
         log.debug("Получен статус 500 Internal Server Error {}", e.getMessage(), e);
         return Map.of("error", e.getMessage());
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleResponseStatusException(ResponseStatusException e) {
+        log.debug("Получен ResponseStatusException: {}", e.getReason());
+        return Map.of("error", e.getReason());
+    }
+
 }

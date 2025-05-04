@@ -1,26 +1,27 @@
 package ru.practicum.shareit.booking.model;
 
 import ru.practicum.shareit.exception.BadRequestException;
-import ru.practicum.shareit.exception.NotFoundException;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 public enum StateBooking {
     ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED;
 
-    public static StateBooking getStateFromText(String text) {
-        for (StateBooking state : StateBooking.values()) {
-            if (state.toString().equals(text)) {
-                return state;
-            }
+    // Основной метод для безопасного парсинга
+    public static Optional<StateBooking> from(String state) {
+        if (state == null || state.isBlank()) {
+            return Optional.empty();
         }
-        throw new NotFoundException("Неизвестный статус");
+        return Arrays.stream(values())
+                .filter(v -> v.name().equalsIgnoreCase(state))
+                .findFirst();
     }
 
-    public static StateBooking fromString(String state) {
-        try {
-            return StateBooking.valueOf(state.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Unknown state: " + state);
-        }
+    // Альтернатива с исключением для legacy-кода
+    @Deprecated
+    public static StateBooking fromStringOrThrow(String state) {
+        return from(state)
+                .orElseThrow(() -> new BadRequestException("Unknown state: " + state));
     }
-
 }

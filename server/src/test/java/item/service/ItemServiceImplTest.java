@@ -107,7 +107,7 @@ class ItemServiceImplTest {
     @Test
     void getSearchOfText_WithValidText_ShouldReturnItems() {
         Page<Item> page = new PageImpl<>(List.of(item));
-        when(itemRepository.findByNameOrDescription(anyString(), any(Pageable.class))).thenReturn(page);
+        when(itemRepository.searchAvailableItemsByNameOrDescription(anyString(), any(Pageable.class))).thenReturn(page);
 
         List<ItemSearchOfTextDto> result = itemService.getSearchOfText("test", 0, 10);
         assertEquals(1, result.size());
