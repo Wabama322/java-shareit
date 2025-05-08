@@ -90,12 +90,20 @@ public class ItemServiceTest {
     }
 
     @Test
-    public void getAllItemsWithBlankTextShouldReturnEmptyListTest() {
+    public void findByNameOrDescriptionWithBlankTextShouldNotCallDatabaseTest() {
         String text = "";
         Pageable page = PageRequest.of(0, 10);
-        Page<Item> actualResult = itemRepository.searchAvailableItemsByNameOrDescription(text, page);
 
-        assertNull(actualResult);
+        when(itemRepository.findByNameContainingIgnoreCaseAndAvailableTrue(text, page))
+                .thenReturn(Page.empty());
+        when(itemRepository.findByDescriptionContainingIgnoreCaseAndAvailableTrue(text, page))
+                .thenReturn(Page.empty());
+
+        Page<Item> byName = itemRepository.findByNameContainingIgnoreCaseAndAvailableTrue(text, page);
+        Page<Item> byDescription = itemRepository.findByDescriptionContainingIgnoreCaseAndAvailableTrue(text, page);
+
+        assertTrue(byName.isEmpty());
+        assertTrue(byDescription.isEmpty());
     }
 
     @Test
@@ -402,7 +410,7 @@ public class ItemServiceTest {
 
     @Test
     void searchItemsByTextWhenTextIsBlankTest() {
-        List<ItemSearchOfTextDto> itemDtoList = itemService.getSearchOfText("", 0, 10);
+        List<ItemSearchOfTextDto> itemDtoList = itemService.searchItems("", 0, 10);
 
         assertEquals(List.of(), itemDtoList);
     }

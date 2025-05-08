@@ -17,6 +17,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.utill.Constants;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -124,7 +125,7 @@ public class ItemControllerTest {
                 .thenReturn(itemWithBookingAndCommentsDto);
 
         mockMvc.perform(get("/items/{id}", itemDtoRequest.getId())
-                        .header("X-Sharer-User-Id", "1"))
+                        .header(Constants.USER_HEADER, "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(itemWithBookingAndCommentsDto.getId()), Long.class))
                 .andExpect(jsonPath("$.description", is(itemWithBookingAndCommentsDto.getDescription()), String.class))
@@ -136,7 +137,7 @@ public class ItemControllerTest {
         when(itemService.getAllItemsUser(anyLong(), anyInt(), anyInt()))
                 .thenReturn(List.of(itemWithBookingAndCommentsDto));
         mockMvc.perform(get("/items")
-                        .header("X-Sharer-User-Id", "1"))
+                        .header(Constants.USER_HEADER, "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id", is(itemWithBookingAndCommentsDto.getId()), Long.class))
                 .andExpect(jsonPath("$[0].description", is(itemWithBookingAndCommentsDto.getDescription()), String.class))
@@ -148,26 +149,26 @@ public class ItemControllerTest {
         String text = "one item";
         Integer from = 0;
         Integer size = 10;
-        given(itemService.getSearchOfText(text, from, size))
+        given(itemService.searchItems(text, from, size))
                 .willReturn(List.of(itemSearchOfTextDto));
 
         mockMvc.perform(get("/items/search")
                         .param("text", text)
                         .param("from", "0")
                         .param("size", "10")
-                        .header("X-Sharer-User-Id", "1")
+                        .header(Constants.USER_HEADER, "1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(List.of(itemSearchOfTextDto))));
 
-        when(itemService.getSearchOfText("items not found", 0, 10))
+        when(itemService.searchItems("items not found", 0, 10))
                 .thenReturn(List.of());
 
         mockMvc.perform(get("/items/search")
                         .param("text", "items not found")
                         .param("from", "0")
                         .param("size", "10")
-                        .header("X-Sharer-User-Id", "1"))
+                        .header(Constants.USER_HEADER, "1"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(List.of())));
     }
@@ -178,7 +179,7 @@ public class ItemControllerTest {
                 .thenReturn(itemDtoResponse);
 
         mockMvc.perform(post("/items")
-                        .header("X-Sharer-User-Id", "1")
+                        .header(Constants.USER_HEADER, "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(itemDtoResponse)))
                 .andExpect(status().isOk())
@@ -195,7 +196,7 @@ public class ItemControllerTest {
                 .thenReturn(itemDtoResponse);
 
         mockMvc.perform(patch("/items/{itemId}", itemDtoRequest.getId())
-                        .header("X-Sharer-User-Id", "1")
+                        .header(Constants.USER_HEADER, "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(itemDtoResponse)))
                 .andExpect(status().isOk())
@@ -221,7 +222,7 @@ public class ItemControllerTest {
                 .thenReturn(commentDtoResponse);
 
         mockMvc.perform(post("/items/{itemId}/comment", item.getId())
-                        .header("X-Sharer-User-Id", "1")
+                        .header(Constants.USER_HEADER, "1")
                         .content(objectMapper.writeValueAsString(commentDtoResponse))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())

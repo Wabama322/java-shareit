@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,8 +28,11 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
@@ -96,13 +100,23 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<ItemSearchOfTextDto> getSearchOfText(String text, int from, int size) {
+    public List<ItemSearchOfTextDto> searchItems(String text, int from, int size) {
         if (text.isBlank()) {
             return List.of();
         }
-        Pageable pageable = PageRequest.of(from, size, Sort.unsorted());
-        List<Item> itemList = itemRepository.searchAvailableItemsByNameOrDescription(text, pageable).getContent();
-        return itemList.stream().map(ItemMapper::toItemSearchOfTextDto).collect(toList());
+
+        Pageable pageable = PageRequest.of(from, size);
+
+        Page<Item> byName = itemRepository.findByNameContainingIgnoreCaseAndAvailableTrue(text, pageable);
+        Page<Item> byDescription = itemRepository.findByDescriptionContainingIgnoreCaseAndAvailableTrue(text, pageable);
+
+        Set<Item> uniqueItems = new HashSet<>();
+        uniqueItems.addAll(byName.getContent());
+        uniqueItems.addAll(byDescription.getContent());
+
+        return uniqueItems.stream()
+                .map(ItemMapper::toItemSearchOfTextDto)
+                .collect(Collectors.toList());
     }
 
     @Transactional

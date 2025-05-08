@@ -18,10 +18,6 @@ import ru.practicum.shareit.validation.Create;
 
 import java.util.Collections;
 
-/**
- * TODO Sprint add-controllers.
- */
-
 @Controller
 @RequestMapping(path = "/items")
 @RequiredArgsConstructor

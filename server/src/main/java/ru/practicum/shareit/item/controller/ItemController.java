@@ -55,11 +55,11 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemSearchOfTextDto> getSearchOfText(
+    public List<ItemSearchOfTextDto> searchItems(
             @RequestParam String text,
             @RequestParam(name = "from", defaultValue = "0") int from,
             @RequestParam(name = "size", defaultValue = "20") int size) {
         log.info("GET запрос на получение всех вещей с текстом: {}", text);
-        return service.getSearchOfText(text, from, size);
+        return service.searchItems(text, from, size);
     }
 }

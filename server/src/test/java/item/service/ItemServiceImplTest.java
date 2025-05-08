@@ -31,8 +31,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ItemServiceImplTest {
@@ -99,17 +98,30 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void getSearchOfText_WithBlankText_ShouldReturnEmptyList() {
-        List<ItemSearchOfTextDto> result = itemService.getSearchOfText("", 0, 10);
+    void searchItems_WithBlankText_ShouldReturnEmptyList() {
+        List<ItemSearchOfTextDto> result = itemService.searchItems("", 0, 10);
         assertTrue(result.isEmpty());
+
+        // Можно добавить (но не обязательно)
+        verifyNoInteractions(itemRepository);
     }
 
     @Test
     void getSearchOfText_WithValidText_ShouldReturnItems() {
-        Page<Item> page = new PageImpl<>(List.of(item));
-        when(itemRepository.searchAvailableItemsByNameOrDescription(anyString(), any(Pageable.class))).thenReturn(page);
+        // 1. Подготовка тестовых данных (как у вас было)
+        Item item = new Item();
+        item.setId(1L);
+        item.setName("Item");
+        item.setAvailable(true);
 
-        List<ItemSearchOfTextDto> result = itemService.getSearchOfText("test", 0, 10);
+        // 2. Адаптация моков под новые методы репозитория
+        when(itemRepository.findByNameContainingIgnoreCaseAndAvailableTrue(anyString(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(item)));
+        when(itemRepository.findByDescriptionContainingIgnoreCaseAndAvailableTrue(anyString(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        // 3. Старые проверки остаются без изменений
+        List<ItemSearchOfTextDto> result = itemService.searchItems("test", 0, 10);
         assertEquals(1, result.size());
         assertEquals("Item", result.get(0).getName());
     }

@@ -2,12 +2,13 @@ package item.repository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import ru.practicum.shareit.ShareItServer;
@@ -21,15 +22,19 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+@ExtendWith(MockitoExtension.class)
 @DataJpaTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @ContextConfiguration(classes = ShareItServer.class)
 class ItemRepositoryTest {
+
     @Autowired
-    ItemRepository itemRepository;
+    private ItemRepository itemRepository;
+
     @Autowired
-    UserRepository userRepository;
-    User user;
+    private UserRepository userRepository;
+
+    private User user;
 
     @BeforeEach
     void setUp() {
@@ -63,12 +68,31 @@ class ItemRepositoryTest {
 
     @Test
     void searchItemsByTextTest() {
-        Pageable pageable = PageRequest.of(0, 10, Sort.unsorted());
-        List<Item> itemList =
-                itemRepository.searchAvailableItemsByNameOrDescription("it", pageable).getContent();
+        Pageable pageable = PageRequest.of(0, 10);
 
-        assertNotNull(itemList);
-        assertEquals(2, itemList.size());
+        Page<Item> result = itemRepository.findByNameContainingIgnoreCaseAndAvailableTrue("Doll", pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals("Doll", result.getContent().get(0).getName());
+    }
+
+    @Test
+    void searchItemsByTextTest_Combined() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        itemRepository.save(Item.builder()
+                .name("Hammer")
+                .description("Professional drilling hammer")
+                .available(true)
+                .owner(user)
+                .build());
+
+        Page<Item> byName = itemRepository.findByNameContainingIgnoreCaseAndAvailableTrue("Hammer", pageable);
+        Page<Item> byDesc = itemRepository.findByDescriptionContainingIgnoreCaseAndAvailableTrue("drilling", pageable);
+
+        assertEquals(1, byName.getContent().size(), "Должна найтись 1 вещь по названию");
+        assertEquals(1, byDesc.getContent().size(), "Должна найтись 1 вещь по описанию");
     }
 
     @Test
@@ -76,7 +100,8 @@ class ItemRepositoryTest {
         String text = "text";
         Pageable page = PageRequest.of(0, 10);
 
-        Page<Item> actualResult = itemRepository.searchAvailableItemsByNameOrDescription(text, page);
+        Page<Item> actualResult = itemRepository.findByDescriptionContainingIgnoreCaseAndAvailableTrue(text, page);
+
         assertEquals(List.of(), actualResult.getContent());
     }
 

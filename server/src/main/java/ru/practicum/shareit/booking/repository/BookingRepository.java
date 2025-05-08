@@ -51,12 +51,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findByItemOwnerIdAndStatusOrderByStartDesc(Long ownerId, Status status, Pageable pageable);
 
-    @Query("select new java.lang.Boolean(COUNT(b) > 0) " +
-            "from Booking b " +
-            "where b.item.id = ?1 and b.status = ?2 " +
-            "and (b.end = ?3 or b.end < ?3) " +
-            "and b.booker.id = ?4")
-    Boolean existsValidBooking(Long itemId, Status status, LocalDateTime end, Long userId);
+    boolean existsByItemIdAndStatusAndEndLessThanEqualAndBookerId(
+            Long itemId,
+            Status status,
+            LocalDateTime end,
+            Long bookerId
+    );
 
     List<Booking> findByBookerIdAndStatusInOrderByStartDesc(
             Long userId,
