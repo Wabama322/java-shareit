@@ -68,7 +68,7 @@ public class ItemRequestRepositoryTest {
     @Test
     void findByNotRequesterIdTest() {
         List<ItemRequest> itemRequests = itemRequestRepository
-                .findByNotRequesterId(user.getId(), PageRequest.of(0, 2)).getContent();
+                .findByRequesterIdNot(user.getId(), PageRequest.of(0, 2)).getContent();
 
         assertNotNull(itemRequests);
         assertEquals(1, itemRequests.size());
@@ -86,7 +86,7 @@ public class ItemRequestRepositoryTest {
     @Test
     public void findItemRequestsByUserIdTest() {
         List<ItemRequest> itemRequests = itemRequestRepository
-                .findItemRequestsByUserId(user1.getId());
+                .findByRequesterIdOrderByCreatedDesc(user1.getId());
 
         assertNotNull(itemRequests);
         assertEquals(1, itemRequests.size());

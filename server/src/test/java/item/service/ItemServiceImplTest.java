@@ -25,6 +25,7 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -165,7 +166,13 @@ class ItemServiceImplTest {
     void addItem_WithRequest_ShouldSetRequest() {
         ItemRequest request = new ItemRequest();
         request.setId(1L);
-        ItemDtoRequest itemDto = ItemDtoRequest.builder().requestId(1L).build();
+        request.setItems(new ArrayList<>()); // Добавляем инициализацию списка
+        ItemDtoRequest itemDto = ItemDtoRequest.builder()
+                .requestId(1L)
+                .name("Item")
+                .description("Description")
+                .available(true)
+                .build();
 
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
         when(itemRequestRepository.findById(anyLong())).thenReturn(Optional.of(request));
@@ -182,7 +189,8 @@ class ItemServiceImplTest {
         User owner = User.builder().id(1L).build();
         Item item = Item.builder().id(1L).owner(owner).build();
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
+        when(userRepository.existsById(1L)).thenReturn(true);
+
         when(itemRepository.findAllByOwnerIdOrderById(eq(1L), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(item)));
         when(commentRepository.findByItemIn(eq(List.of(item)), any(Sort.class)))
@@ -193,7 +201,7 @@ class ItemServiceImplTest {
         List<ItemForBookingDto> result = itemService.getAllItemsUser(1L, 0, 10);
 
         assertEquals(1, result.size());
-        verify(userRepository).findById(1L);
+        verify(userRepository).existsById(1L);
     }
 
     @Test

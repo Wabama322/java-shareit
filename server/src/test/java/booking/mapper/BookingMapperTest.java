@@ -33,7 +33,7 @@ public class BookingMapperTest {
                 .email("mail@gmail.com")
                 .build();
 
-        userForResponse = UserMapper.toUserWithIdDtoMapper(user);
+        userForResponse = UserMapper.toUserWithIdDto(user);
 
         owner = User.builder()
                 .id(2L)
@@ -41,7 +41,7 @@ public class BookingMapperTest {
                 .email("owner@jjgv.zw")
                 .build();
 
-        ownerForResponseDto = UserMapper.toUserWithIdDtoMapper(owner);
+        ownerForResponseDto = UserMapper.toUserWithIdDto(owner);
 
         ItemDtoRequest itemDtoRequest1 = ItemDtoRequest.builder().id(1L)
                 .name("name item 1").description("desc item 1").available(true).build();
@@ -100,7 +100,7 @@ public class BookingMapperTest {
         original.setStatus(Status.WAITING);
         original.setStart(LocalDateTime.now().minusDays(1));
         original.setEnd(LocalDateTime.now());
-        var result = BookingMapper.toBookingForResponseMapper(original);
+        var result = BookingMapper.toBookingForResponse(original);
 
         assertNotNull(result);
         assertEquals(original.getId(), result.getId());

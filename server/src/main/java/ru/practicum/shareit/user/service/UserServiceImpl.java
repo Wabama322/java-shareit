@@ -10,12 +10,12 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-
+@Transactional
 public class UserServiceImpl implements UserService {
+    private static final String USER_NOT_FOUND = "Пользователь с id %d не найден";
 
     private final UserRepository userRepository;
 
@@ -23,45 +23,38 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public Collection<UserDto> getAllUsers() {
         return userRepository.findAll().stream()
-                .map(UserMapper::toUserDtoResponse).collect(Collectors.toList());
+                .map(UserMapper::toUserDto)
+                .toList(); // Java 16+ shortcut
     }
 
-    @Transactional(readOnly = true)
     @Override
+    @Transactional(readOnly = true)
     public UserDto getUser(long id) {
-        User user = userRepository.findById(id).orElseThrow(() ->
-                new NotFoundException("Пользователь с id " +
-                        id + " не найден"));
-        return UserMapper.toUserDtoResponse(user);
+        return userRepository.findById(id)
+                .map(UserMapper::toUserDto)
+                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND.formatted(id)));
     }
 
-    @Transactional
     @Override
     public UserDto createUser(UserDto userDto) {
-        User user = UserMapper.toUserModel(userDto);
-        User saveUser = userRepository.save(user);
-        return UserMapper.toUserDtoResponse(saveUser);
+        User user = UserMapper.toUser(userDto);
+        return UserMapper.toUserDto(userRepository.save(user));
     }
 
-    @Transactional
     @Override
     public UserDto updateUser(long id, UserDto userDto) {
-        User oldUser = userRepository.findById(id).orElseThrow(() ->
-                new NotFoundException("Пользователь с id " +
-                        id + " не найден"));
-        if (userDto.getEmail() != null) {
-            oldUser.setEmail(userDto.getEmail());
-        }
-        if (userDto.getName() != null && !userDto.getName().equals(oldUser.getName())) {
-            oldUser.setName(userDto.getName());
-        }
-        User saveUser = userRepository.save(oldUser);
-        return UserMapper.toUserDtoResponse(saveUser);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND.formatted(id)));
+
+        UserMapper.updateUserFromDto(userDto, user); // Используем наш маппер
+        return UserMapper.toUserDto(userRepository.save(user));
     }
 
-    @Transactional
     @Override
     public void deleteUser(long id) {
+        if (!userRepository.existsById(id)) {
+            throw new NotFoundException(USER_NOT_FOUND.formatted(id));
+        }
         userRepository.deleteById(id);
     }
 }

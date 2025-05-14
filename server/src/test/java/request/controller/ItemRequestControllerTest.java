@@ -54,8 +54,8 @@ public class ItemRequestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .header("X-Sharer-User-Id", 1L)
-                        .content(mapper.writeValueAsString(itemRequestResponseDto)))
-                .andExpect(status().isOk())
+                        .content(mapper.writeValueAsString(itemRequestDto))) // Исправлено: отправляем itemRequestDto, а не itemRequestResponseDto
+                .andExpect(status().isCreated()) // Ожидаем статус 201 Created
                 .andExpect(jsonPath("$.id", is(itemRequestResponseDto.getId()), Long.class))
                 .andExpect(jsonPath("$.description", is(itemRequestResponseDto.getDescription()), String.class))
                 .andExpect(jsonPath("$.requester.id", is(itemRequestResponseDto.getRequester().getId()), Long.class));

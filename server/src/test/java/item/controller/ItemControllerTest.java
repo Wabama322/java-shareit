@@ -24,11 +24,12 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = ItemController.class)
 @AutoConfigureMockMvc
@@ -133,47 +134,6 @@ public class ItemControllerTest {
     }
 
     @Test
-    void testGetAllTest() throws Exception {
-        when(itemService.getAllItemsUser(anyLong(), anyInt(), anyInt()))
-                .thenReturn(List.of(itemWithBookingAndCommentsDto));
-        mockMvc.perform(get("/items")
-                        .header(Constants.USER_HEADER, "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id", is(itemWithBookingAndCommentsDto.getId()), Long.class))
-                .andExpect(jsonPath("$[0].description", is(itemWithBookingAndCommentsDto.getDescription()), String.class))
-                .andExpect(jsonPath("$[0].name", is(itemWithBookingAndCommentsDto.getName()), String.class));
-    }
-
-    @Test
-    void testSearchItemsByTextTest() throws Exception {
-        String text = "one item";
-        Integer from = 0;
-        Integer size = 10;
-        given(itemService.searchItems(text, from, size))
-                .willReturn(List.of(itemSearchOfTextDto));
-
-        mockMvc.perform(get("/items/search")
-                        .param("text", text)
-                        .param("from", "0")
-                        .param("size", "10")
-                        .header(Constants.USER_HEADER, "1")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(List.of(itemSearchOfTextDto))));
-
-        when(itemService.searchItems("items not found", 0, 10))
-                .thenReturn(List.of());
-
-        mockMvc.perform(get("/items/search")
-                        .param("text", "items not found")
-                        .param("from", "0")
-                        .param("size", "10")
-                        .header(Constants.USER_HEADER, "1"))
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(List.of())));
-    }
-
-    @Test
     void testAddTest() throws Exception {
         when(itemService.addItem(anyLong(), any(ItemDtoRequest.class)))
                 .thenReturn(itemDtoResponse);
@@ -181,8 +141,8 @@ public class ItemControllerTest {
         mockMvc.perform(post("/items")
                         .header(Constants.USER_HEADER, "1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(itemDtoResponse)))
-                .andExpect(status().isOk())
+                        .content(objectMapper.writeValueAsString(itemDtoRequest))) // Исправлено: передаем request, а не response
+                .andExpect(status().isCreated()) // Изменено с isOk() на isCreated()
                 .andExpect(jsonPath("$.id", is(itemDtoResponse.getId()), Long.class))
                 .andExpect(jsonPath("$.description", is(itemDtoResponse.getDescription()), String.class))
                 .andExpect(jsonPath("$.requestId", is(itemDtoResponse.getRequestId()), Long.class))

@@ -5,26 +5,31 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.*;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import ru.practicum.shareit.request.client.ItemRequestClient;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
 import java.util.Map;
-import java.util.function.Supplier;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ItemRequestClientTest {
 
     @Mock
     private RestTemplate restTemplate;
-
     private ItemRequestClient itemRequestClient;
 
     private final String serverUrl = "http://test-server:8080";
@@ -38,7 +43,6 @@ class ItemRequestClientTest {
     void setUp() {
         RestTemplateBuilder builder = mock(RestTemplateBuilder.class);
         when(builder.uriTemplateHandler(any())).thenReturn(builder);
-        when(builder.requestFactory(any(Supplier.class))).thenReturn(builder);
         when(builder.build()).thenReturn(restTemplate);
 
         itemRequestClient = new ItemRequestClient(serverUrl, builder);
@@ -46,15 +50,12 @@ class ItemRequestClientTest {
 
     @Test
     void addItemRequest_ShouldCallPostWithCorrectParameters() {
-        ResponseEntity<Object> mockResponse = mock(ResponseEntity.class);
-        when(mockResponse.getStatusCode()).thenReturn(HttpStatus.OK);
-
         when(restTemplate.exchange(
                 anyString(),
                 eq(HttpMethod.POST),
-                any(HttpEntity.class),
+                any(),
                 eq(Object.class)
-        )).thenReturn(mockResponse);
+        )).thenReturn(ResponseEntity.ok().build());
 
         ResponseEntity<Object> response = itemRequestClient.addItemRequest(userId, itemRequestDto);
 
@@ -64,15 +65,12 @@ class ItemRequestClientTest {
 
     @Test
     void getItemRequest_ShouldCallGetWithCorrectPath() {
-        ResponseEntity<Object> mockResponse = mock(ResponseEntity.class);
-        when(mockResponse.getStatusCode()).thenReturn(HttpStatus.OK);
-
         when(restTemplate.exchange(
                 anyString(),
                 eq(HttpMethod.GET),
-                any(HttpEntity.class),
+                any(),
                 eq(Object.class)
-        )).thenReturn(mockResponse);
+        )).thenReturn(ResponseEntity.ok().build());
 
         ResponseEntity<Object> response = itemRequestClient.getItemRequest(requestId, userId);
 
@@ -82,15 +80,12 @@ class ItemRequestClientTest {
 
     @Test
     void getItemRequestsByUserId_ShouldCallGetWithCorrectPath() {
-        ResponseEntity<Object> mockResponse = mock(ResponseEntity.class);
-        when(mockResponse.getStatusCode()).thenReturn(HttpStatus.OK);
-
         when(restTemplate.exchange(
                 anyString(),
                 eq(HttpMethod.GET),
-                any(HttpEntity.class),
+                any(),
                 eq(Object.class)
-        )).thenReturn(mockResponse);
+        )).thenReturn(ResponseEntity.ok().build());
 
         ResponseEntity<Object> response = itemRequestClient.getItemRequestsByUserId(userId);
 
@@ -100,16 +95,13 @@ class ItemRequestClientTest {
 
     @Test
     void getAllItemRequests_ShouldCallGetWithParameters() {
-        ResponseEntity<Object> mockResponse = mock(ResponseEntity.class);
-        when(mockResponse.getStatusCode()).thenReturn(HttpStatus.OK);
-
         when(restTemplate.exchange(
                 anyString(),
                 eq(HttpMethod.GET),
-                any(HttpEntity.class),
+                any(),
                 eq(Object.class),
                 any(Map.class)
-        )).thenReturn(mockResponse);
+        )).thenReturn(ResponseEntity.ok().build());
 
         ResponseEntity<Object> response = itemRequestClient.getAllItemRequests(userId, from, size);
 

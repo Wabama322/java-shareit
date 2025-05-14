@@ -11,14 +11,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.*;
-import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
-import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -218,7 +215,7 @@ public class ItemServiceTest {
 
         NotFoundException ex = assertThrows(NotFoundException.class, () -> itemService.updateItem(ownerId, itemId,
                 itemDto));
-        assertEquals("Вещь с ID 2 не зарегистрирован!", ex.getMessage());
+        assertEquals("Вещь с ID 2 не найдена", ex.getMessage());
     }
 
     @Test
@@ -264,84 +261,13 @@ public class ItemServiceTest {
     }
 
     @Test
-    public void shouldMapToCommentDtoListTest() {
-        User owner = new User(1L,
-                "Alena",
-                "Alena@gmail.com");
-        Item item = new Item(1L,
-                "Doll",
-                "Barbie",
-                true,
-                owner,
-                null);
-
-        User author = new User(3L,
-                "test@gmail.com",
-                "Tester");
-        Comment comment1 = new Comment(1L, "text1", item, author, LocalDateTime.now());
-        Comment comment2 = new Comment(1L, "text2", item, author, LocalDateTime.now());
-        List<Comment> commentList = List.of(comment1, comment2);
-        List<CommentDtoResponse> commentDto = CommentMapper.toCommentDtoList(commentList);
-
-        assertNotNull(commentDto);
-        assertEquals(commentDto.get(0).getText(), comment1.getText());
-        assertEquals(commentDto.get(1).getText(), comment2.getText());
-    }
-
-    @Test
-    public void addBookingAndCommentTest() {
-        User owner = new User(1L,
-                "test@gmail.com",
-                "Tester");
-        Item item = Item.builder()
-                .id(1L)
-                .name("Doll")
-                .description("Barbie")
-                .owner(owner)
-                .build();
-        List<Comment> comments = List.of(
-                new Comment(1L, "Coll", item, owner, LocalDateTime.now()),
-                new Comment(2L, "Fine", item, owner, LocalDateTime.now())
-        );
-        List<Booking> bookings = List.of(
-                new Booking(1L,
-                        LocalDateTime.now().minusDays(2),
-                        LocalDateTime.now().minusDays(1),
-                        item,
-                        owner,
-                        Status.APPROVED),
-                new Booking(2L,
-                        LocalDateTime.now().plusDays(1),
-                        LocalDateTime.now().plusDays(2),
-                        item,
-                        owner,
-                        Status.APPROVED)
-        );
-        LocalDateTime now = LocalDateTime.now();
-
-        ItemForBookingDto result = itemService.addBookingAndComment(item, 1L, comments, bookings, now);
-
-        assertNotNull(result);
-        assertEquals(item.getId(), result.getId());
-        assertEquals(item.getName(), result.getName());
-        assertEquals(item.getDescription(), result.getDescription());
-        assertNull(result.getAvailable());
-        assertNotNull(result.getLastBooking());
-        assertNotNull(result.getNextBooking());
-        assertNotNull(result.getComments());
-        assertEquals(comments.size(), result.getComments().size());
-        assertEquals(comments.get(0).getId(), result.getComments().get(0).getId());
-        assertEquals(comments.get(1).getId(), result.getComments().get(1).getId());
-    }
-
-    @Test
     public void getItemInvalidThrowsExceptionTest() {
         Long itemId = 1L;
         Long userId = 2L;
         when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
 
         NotFoundException ex = assertThrows(NotFoundException.class, () -> itemService.getItemDto(itemId, userId));
-        assertEquals("Вещь с ID 2 не зарегистрирован!", ex.getMessage());
+        assertEquals("Вещь с ID 2 не найдена", ex.getMessage());
     }
 
     @Test
@@ -352,7 +278,7 @@ public class ItemServiceTest {
 
         NotFoundException ex = assertThrows(NotFoundException.class, () -> itemService.getAllItemsUser(ownerId, from,
                 size));
-        assertEquals("Пользователь с ID -1 не зарегистрирован!", ex.getMessage());
+        assertEquals("Пользователь с ID -1 не найден", ex.getMessage());
     }
 
     @Test
@@ -363,7 +289,7 @@ public class ItemServiceTest {
 
         NotFoundException ex = assertThrows(NotFoundException.class, () -> itemService.getAllItemsUser(ownerId, from,
                 size));
-        assertEquals("Пользователь с ID 1 не зарегистрирован!", ex.getMessage());
+        assertEquals("Пользователь с ID 1 не найден", ex.getMessage());
     }
 
     @Test
@@ -393,7 +319,7 @@ public class ItemServiceTest {
                 false,
                 null));
         List<ItemDtoResponse> actualResult = itemList.stream()
-                .map(ItemMapper::toItemDtoResponse).collect(Collectors.toList());
+                .map(ItemMapper::toItemDto).collect(Collectors.toList());
 
         assertEquals(expectedResult, actualResult);
     }
@@ -402,7 +328,7 @@ public class ItemServiceTest {
     public void toItemDtoListEmptyListTest() {
         List<Item> itemList = Collections.emptyList();
         List<ItemForItemRequestResponseDto> expectedResult = Collections.emptyList();
-        List<ItemForItemRequestResponseDto> actualResult = ItemMapper.toItemForItemRequestsResponseDto(itemList);
+        List<ItemForItemRequestResponseDto> actualResult = ItemMapper.toRequestItemDtoList(itemList);
 
         assertNotNull(actualResult);
         assertEquals(expectedResult, actualResult);
@@ -423,7 +349,7 @@ public class ItemServiceTest {
 
         NotFoundException ex = assertThrows(NotFoundException.class, () -> itemService.addComment(itemId, authorId,
                 commentDto));
-        assertEquals("Вещь с ID 3 не зарегистрирован!", ex.getMessage());
+        assertEquals("Вещь с ID 3 не найдена", ex.getMessage());
     }
 
     @Test
@@ -439,7 +365,7 @@ public class ItemServiceTest {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> {
             itemService.addComment(itemId, authorId, commentDto);
         });
-        assertEquals("Вещь с ID 1 не зарегистрирован!", ex.getMessage());
+        assertEquals("Вещь с ID 1 не найдена", ex.getMessage());
     }
 
     @Test

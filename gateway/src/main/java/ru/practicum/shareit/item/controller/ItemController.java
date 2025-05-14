@@ -5,9 +5,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.client.ItemClient;
@@ -18,63 +16,76 @@ import ru.practicum.shareit.validation.Create;
 
 import java.util.Collections;
 
-@Controller
-@RequestMapping(path = "/items")
+@RestController
+@RequestMapping("/items")
 @RequiredArgsConstructor
 @Slf4j
 @Validated
 public class ItemController {
+    private static final String ITEM_ID_PATH = "/{itemId}";
+    private static final String COMMENT_PATH = ITEM_ID_PATH + "/comment";
+    private static final String SEARCH_PATH = "/search";
+    private static final String DEFAULT_FROM = "0";
+    private static final String DEFAULT_SIZE = "20";
 
     private final ItemClient itemClient;
-    static final String PATH = "/{item-id}";
 
     @PostMapping
-    public ResponseEntity<Object> addItem(@RequestHeader(Constants.USER_HEADER) Long userId,
-                                          @RequestBody @Validated({Create.class}) ItemDtoRequest itemDto) {
-        log.info("POST запрос на создание вещи userId={}, itemDto={}", userId, itemDto);
-        return itemClient.postItem(itemDto, userId);
+    public ResponseEntity<Object> createItem(
+            @RequestHeader(Constants.USER_HEADER) Long userId,
+            @RequestBody @Validated(Create.class) ItemDtoRequest itemDto) {
+        log.debug("Create item request. UserId: {}, ItemDto: {}", userId, itemDto);
+        return itemClient.createItem(itemDto, userId);
     }
 
-    @PostMapping("/{item-id}/comment")
-    public ResponseEntity<Object> addComment(@PathVariable("item-id") Long itemId,
-                                             @RequestHeader(Constants.USER_HEADER) Long userId,
-                                             @Valid @RequestBody CommentDtoRequest commentDto) {
-        log.info("POST запрос на создание комментария userId={}, itemId={}, commentDto={}", userId, itemId, commentDto);
+    @PostMapping(COMMENT_PATH)
+    public ResponseEntity<Object> addComment(
+            @PathVariable Long itemId,
+            @RequestHeader(Constants.USER_HEADER) Long userId,
+            @Valid @RequestBody CommentDtoRequest commentDto) {
+        log.debug("Add comment request. UserId: {}, ItemId: {}", userId, itemId);
         return itemClient.addComment(itemId, userId, commentDto);
     }
 
-    @PatchMapping(PATH)
-    public ResponseEntity<Object> updateItem(@RequestBody ItemDtoRequest itemDto,
-                                             @RequestHeader(Constants.USER_HEADER) Long userId,
-                                             @PathVariable("item-id") long itemId) {
-        log.info("PATCH запрос на обновление вещи userId={}, itemId= {}, itemDto={}", userId, itemId, itemDto);
-        return itemClient.patchItem(userId, itemId, itemDto);
+    @PatchMapping(ITEM_ID_PATH)
+    public ResponseEntity<Object> updateItem(
+            @RequestBody ItemDtoRequest itemDto,
+            @RequestHeader(Constants.USER_HEADER) Long userId,
+            @PathVariable Long itemId) {
+        log.debug("Update item request. UserId: {}, ItemId: {}", userId, itemId);
+        return itemClient.updateItem(itemId, userId, itemDto);
     }
 
-    @GetMapping(PATH)
-    public ResponseEntity<Object> getItem(@PathVariable("item-id") Long itemId,
-                                          @RequestHeader(Constants.USER_HEADER) Long ownerId) {
-        log.info("GET запрос на получение вещи itemId={}, ownerId={}", itemId, ownerId);
-        return itemClient.getItem(itemId, ownerId);
+    @GetMapping(ITEM_ID_PATH)
+    public ResponseEntity<Object> getItemById(
+            @PathVariable Long itemId,
+            @RequestHeader(Constants.USER_HEADER) Long userId) {
+        log.debug("Get item request. ItemId: {}, UserId: {}", itemId, userId);
+        return itemClient.getItemById(itemId, userId);
     }
 
     @GetMapping
-    public ResponseEntity<Object> getAllItemsUser(@RequestHeader(Constants.USER_HEADER) Long userId,
-                                                  @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
-                                                  @Positive @RequestParam(defaultValue = "20") Integer size) {
-        log.info("GET запрос на получение всех вещей пользователя userId={}, from={}, size={}", userId, from, size);
-        return itemClient.getAllItemsUser(userId, from, size);
+    public ResponseEntity<Object> getUserItems(
+            @RequestHeader(Constants.USER_HEADER) Long userId,
+            @PositiveOrZero @RequestParam(defaultValue = DEFAULT_FROM) Integer from,
+            @Positive @RequestParam(defaultValue = DEFAULT_SIZE) Integer size) {
+        log.debug("Get user items request. UserId: {}, From: {}, Size: {}", userId, from, size);
+        return itemClient.getUserItems(userId, from, size);
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<Object> getSearchOfText(@RequestHeader(Constants.USER_HEADER) long userId,
-                                                  @RequestParam String text,
-                                                  @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
-                                                  @Positive @RequestParam(defaultValue = "20") Integer size) {
-        log.info("Получил GET запрос на получение всех вещей с текстом:={}, from={}, size={}", text, from, size);
-        if (text == null || text.isBlank()) {
-            return new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK);
+    @GetMapping(SEARCH_PATH)
+    public ResponseEntity<Object> searchItems(
+            @RequestHeader(Constants.USER_HEADER) Long userId,
+            @RequestParam String text,
+            @PositiveOrZero @RequestParam(defaultValue = DEFAULT_FROM) Integer from,
+            @Positive @RequestParam(defaultValue = DEFAULT_SIZE) Integer size) {
+
+        if (text.isBlank()) {
+            log.debug("Empty search text - returning empty list");
+            return ResponseEntity.ok(Collections.emptyList());
         }
-        return itemClient.getSearchOfText(userId, text, from, size);
+
+        log.debug("Search items request. Text: {}, From: {}, Size: {}", text, from, size);
+        return itemClient.searchItems(text, userId, from, size);
     }
 }

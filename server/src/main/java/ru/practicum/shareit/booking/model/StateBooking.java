@@ -8,7 +8,6 @@ import java.util.Optional;
 public enum StateBooking {
     ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED;
 
-    // Основной метод для безопасного парсинга
     public static Optional<StateBooking> from(String state) {
         if (state == null || state.isBlank()) {
             return Optional.empty();
@@ -18,7 +17,6 @@ public enum StateBooking {
                 .findFirst();
     }
 
-    // Альтернатива с исключением для legacy-кода
     @Deprecated
     public static StateBooking fromStringOrThrow(String state) {
         return from(state)

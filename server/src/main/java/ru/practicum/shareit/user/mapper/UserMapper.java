@@ -7,23 +7,46 @@ import ru.practicum.shareit.user.dto.UserDto;
 
 @UtilityClass
 public class UserMapper {
-    public UserWithIdDto toUserWithIdDtoMapper(User user) {
-        return new UserWithIdDto(user.getId());
+    public static UserWithIdDto toUserWithIdDto(User user) {
+        if (user == null) {
+            return null;
+        }
+        return UserWithIdDto.builder()
+                .id(user.getId())
+                .build();
     }
 
-    public User toUserModel(UserDto userDtoRequest) {
-        return new User(
-                userDtoRequest.getId(),
-                userDtoRequest.getName(),
-                userDtoRequest.getEmail()
-        );
+    public static User toUser(UserDto userDto) {
+        if (userDto == null) {
+            return null;
+        }
+        return User.builder()
+                .id(userDto.getId())
+                .name(userDto.getName())
+                .email(userDto.getEmail())
+                .build();
     }
 
-    public UserDto toUserDtoResponse(User user) {
-        return new UserDto(
-                user.getId(),
-                user.getName(),
-                user.getEmail()
-        );
+    public static UserDto toUserDto(User user) {
+        if (user == null) {
+            return null;
+        }
+        return UserDto.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .build();
+    }
+
+    public static void updateUserFromDto(UserDto userDto, User user) {
+        if (userDto == null || user == null) {
+            return;
+        }
+        if (userDto.getName() != null) {
+            user.setName(userDto.getName());
+        }
+        if (userDto.getEmail() != null) {
+            user.setEmail(userDto.getEmail());
+        }
     }
 }

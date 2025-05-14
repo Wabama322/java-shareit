@@ -22,7 +22,7 @@ public class ItemMapperTest {
         original.setName("Alena");
         original.setRequest(null);
         original.setAvailable(true);
-        var result = ItemMapper.toItemDtoResponse(original);
+        var result = ItemMapper.toItemDto(original);
 
         assertNotNull(result);
         assertEquals(original.getId(), result.getId());
@@ -70,7 +70,7 @@ public class ItemMapperTest {
         original.setName("Alena");
         original.setRequest(null);
         original.setAvailable(true);
-        var result = ItemMapper.toItemForBookingDto(original, lastBooking, nextBooking, comments);
+        var result = ItemMapper.toItemWithBookings(original, lastBooking, nextBooking, comments);
 
         assertNotNull(result);
         assertEquals(original.getId(), result.getId());
@@ -90,7 +90,7 @@ public class ItemMapperTest {
         original.setName("Alena");
         original.setRequest(null);
         original.setAvailable(true);
-        var result = ItemMapper.toItemForItemRequestResponseDto(original);
+        var result = ItemMapper.toRequestItemDto(original);
 
         assertNotNull(result);
         assertEquals(original.getId(), result.getId());
@@ -110,7 +110,7 @@ public class ItemMapperTest {
         original.setAvailable(true);
         var items = new ArrayList<Item>();
         items.add(original);
-        var result = ItemMapper.toItemForItemRequestsResponseDto(items);
+        var result = ItemMapper.toRequestItemDtoList(items);
 
         assertNotNull(result);
         assertEquals(items.get(0).getId(), result.get(0).getId());

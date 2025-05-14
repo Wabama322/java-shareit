@@ -15,8 +15,6 @@ import org.springframework.web.client.RestTemplate;
 import ru.practicum.shareit.user.client.UserClient;
 import ru.practicum.shareit.user.dto.UserDtoRequest;
 
-import java.util.function.Supplier;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
@@ -35,7 +33,6 @@ class UserClientTest {
     void setUp() {
         RestTemplateBuilder builder = Mockito.mock(RestTemplateBuilder.class);
         when(builder.uriTemplateHandler(any())).thenReturn(builder);
-        when(builder.requestFactory(any(Supplier.class))).thenReturn(builder);
         when(builder.build()).thenReturn(restTemplate);
 
         userClient = new UserClient(SERVER_URL, builder);

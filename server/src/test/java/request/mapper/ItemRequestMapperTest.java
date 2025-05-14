@@ -32,7 +32,7 @@ public class ItemRequestMapperTest {
                 .email("mail@gmail.com")
                 .build();
 
-        withIdDto = UserMapper.toUserWithIdDtoMapper(user);
+        withIdDto = UserMapper.toUserWithIdDto(user);
 
         owner = User.builder()
                 .id(2L)
@@ -40,7 +40,7 @@ public class ItemRequestMapperTest {
                 .email("owner@gmail.com")
                 .build();
 
-        withIdDto1 = UserMapper.toUserWithIdDtoMapper(owner);
+        withIdDto1 = UserMapper.toUserWithIdDto(owner);
 
         item = Item.builder()
                 .id(1L)

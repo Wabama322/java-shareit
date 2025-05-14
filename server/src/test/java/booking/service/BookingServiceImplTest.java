@@ -27,7 +27,6 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -128,7 +127,7 @@ class BookingServiceImplTest {
         Exception exception = assertThrows(BadRequestException.class,
                 () -> bookingService.addBooking(owner.getId(), bookingDtoRequest));
 
-        assertEquals("Нельзя бронировать свою вещь", exception.getMessage());
+        assertEquals("Владелец не может бронировать свою вещь", exception.getMessage());
     }
 
     @Test
@@ -140,7 +139,7 @@ class BookingServiceImplTest {
         Exception exception = assertThrows(BadRequestException.class,
                 () -> bookingService.addBooking(booker.getId(), bookingDtoRequest));
 
-        assertEquals("Вещь недоступна", exception.getMessage());
+        assertEquals("Вещь недоступна для бронирования", exception.getMessage());
     }
 
     @Test
@@ -152,7 +151,7 @@ class BookingServiceImplTest {
         Exception exception = assertThrows(BadRequestException.class,
                 () -> bookingService.addBooking(booker.getId(), bookingDtoRequest));
 
-        assertEquals("Некорректные даты бронирования", exception.getMessage());
+        assertEquals("Дата начала должна быть раньше даты окончания", exception.getMessage());
     }
 
     @Test
@@ -172,7 +171,7 @@ class BookingServiceImplTest {
         Exception exception = assertThrows(AccessDeniedException.class,
                 () -> bookingService.updateBooking(1L, 999L, true));
 
-        assertEquals("Пользователь не является владельцем вещи", exception.getMessage());
+        assertEquals("Только владелец может подтверждать бронирование", exception.getMessage());
     }
 
     @Test
@@ -183,7 +182,7 @@ class BookingServiceImplTest {
         Exception exception = assertThrows(BadRequestException.class,
                 () -> bookingService.updateBooking(1L, owner.getId(), true));
 
-        assertEquals("Бронирование уже обработано", exception.getMessage());
+        assertEquals("Статус уже изменен", exception.getMessage());
     }
 
     @Test
@@ -203,11 +202,12 @@ class BookingServiceImplTest {
         Exception exception = assertThrows(NotFoundException.class,
                 () -> bookingService.getBooking(1L, 999L));
 
-        assertEquals("Бронирование не найдено или доступ запрещен", exception.getMessage());
+        assertEquals("Доступ запрещен", exception.getMessage());
     }
 
     @Test
     void getAllBookingByUser_ShouldReturnBookings() {
+        when(userRepository.existsById(booker.getId())).thenReturn(true);
         Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "start"));
         when(bookingRepository.findByBookerIdOrderByStartDesc(anyLong(), any(Pageable.class)))
                 .thenReturn(List.of(booking));
@@ -220,6 +220,7 @@ class BookingServiceImplTest {
 
     @Test
     void getAllBookingByOwner_ShouldReturnBookings() {
+        when(userRepository.existsById(owner.getId())).thenReturn(true);
         when(bookingRepository.findByItemOwnerIdOrderByStartDesc(eq(owner.getId()), any(Pageable.class)))
                 .thenReturn(List.of(booking));
 
@@ -232,6 +233,8 @@ class BookingServiceImplTest {
 
     @Test
     void getAllBookingByOwner_WithInvalidPagination_ShouldThrowBadRequestException() {
+        when(userRepository.existsById(anyLong())).thenReturn(true); // Пользователь существует
+
         assertThrows(BadRequestException.class,
                 () -> bookingService.getAllBookingByOwner("ALL", owner.getId(), -1, 0));
     }
@@ -271,12 +274,14 @@ class BookingServiceImplTest {
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> bookingService.addBooking(booker.getId(), invalidRequest));
 
-        assertEquals("Некорректные даты бронирования", exception.getMessage());
+        assertEquals("Дата начала должна быть раньше даты окончания", exception.getMessage());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"ALL", "CURRENT", "PAST", "FUTURE", "WAITING", "REJECTED"})
     void getAllBookingByUser_ShouldCallRepositoryMethod(String state) {
+        when(userRepository.existsById(anyLong())).thenReturn(true); // Добавляем мок
+
         if ("ALL".equals(state)) {
             when(bookingRepository.findByBookerIdOrderByStartDesc(anyLong(), any()))
                     .thenReturn(List.of(booking));
@@ -300,6 +305,7 @@ class BookingServiceImplTest {
 
     @Test
     void getAllBookingByOwner_WithPagination_ShouldUseCorrectPageable() {
+        when(userRepository.existsById(owner.getId())).thenReturn(true);
         when(bookingRepository.findByItemOwnerIdOrderByStartDesc(eq(owner.getId()), any()))
                 .thenReturn(List.of(booking, booking));
 
@@ -312,6 +318,8 @@ class BookingServiceImplTest {
 
     @Test
     void getAllBookingByUser_WithInvalidState_ShouldThrowBadRequestException() {
+        when(userRepository.existsById(anyLong())).thenReturn(true); // Добавляем мок
+
         assertThrows(BadRequestException.class,
                 () -> bookingService.getAllBookingByUser("INVALID_STATE", 1L, 0, 10));
     }
@@ -319,18 +327,15 @@ class BookingServiceImplTest {
     @Test
     void getAllBookingByOwner_WithNoUser_ShouldThrow() {
         long invalidUserId = 999L;
+        when(userRepository.existsById(invalidUserId)).thenReturn(false);
 
-        when(bookingRepository.findByItemOwnerIdOrderByStartDesc(eq(invalidUserId), any(Pageable.class)))
-                .thenReturn(Collections.emptyList());
-
-        List<BookingForResponse> result = bookingService.getAllBookingByOwner("ALL", invalidUserId, 0, 10);
-
-        assertTrue(result.isEmpty());
-        verify(bookingRepository).findByItemOwnerIdOrderByStartDesc(eq(invalidUserId), any(Pageable.class));
+        assertThrows(NotFoundException.class,
+                () -> bookingService.getAllBookingByOwner("ALL", invalidUserId, 0, 10));
     }
 
     @Test
     void getAllBookingByUser_WithFutureState_ShouldReturnFutureBookings() {
+        when(userRepository.existsById(anyLong())).thenReturn(true);
         User booker = User.builder().id(1L).build();
         Item item = Item.builder().id(1L).name("Item").build();
 

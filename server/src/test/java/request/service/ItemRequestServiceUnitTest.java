@@ -121,7 +121,7 @@ public class ItemRequestServiceUnitTest {
         itemRequests.add(itemRequest);
         Sort sort = Sort.by(Sort.Direction.DESC, "created");
         Pageable page = PageRequest.of(from / size, size, sort);
-        when(mockItemRequestRepository.findByNotRequesterId(userId,
+        when(mockItemRequestRepository.findByRequesterIdNot(userId,
                 page))
                 .thenReturn(new PageImpl<>(itemRequests));
         when(mockUserRepository.findById(requester.getId())).thenReturn(Optional.of(requester));

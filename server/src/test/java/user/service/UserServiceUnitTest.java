@@ -89,6 +89,9 @@ public class UserServiceUnitTest {
 
     @Test
     public void deleteUserTest() {
+        // Добавляем мок для проверки существования пользователя
+        when(repository.existsById(anyLong())).thenReturn(true);
+
         userService.deleteUser(anyLong());
         verify(repository, times(1)).deleteById(anyLong());
     }
@@ -97,12 +100,12 @@ public class UserServiceUnitTest {
     public void testToUserDto() {
         User user = new User(1L, "Sasha", "Sasha@gmail.com");
 
-        UserDto userDto = UserMapper.toUserDtoResponse(user);
+        UserDto userDto = UserMapper.toUserDto(user);
         assertEquals(1L, userDto.getId());
         assertEquals("Sasha", userDto.getName());
         assertEquals("Sasha@gmail.com", userDto.getEmail());
 
-        User user2 = UserMapper.toUserModel(userDtoRequest2);
+        User user2 = UserMapper.toUser(userDtoRequest2);
         assertEquals(2L, user2.getId());
         assertEquals("Nasty", user2.getName());
         assertEquals("nasty@yandex.ru", user2.getEmail());

@@ -6,64 +6,89 @@ import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 @UtilityClass
 public class ItemMapper {
-    public Item toItem(ItemDtoRequest itemDtoRequest) {
-        Item item = new Item();
-        item.setName(itemDtoRequest.getName());
-        item.setDescription(itemDtoRequest.getDescription());
-        item.setAvailable(itemDtoRequest.getAvailable());
-        return item;
+
+    public Item toItem(ItemDtoRequest dto) {
+        Objects.requireNonNull(dto, "ItemDtoRequest не может быть null");
+
+        return Item.builder()
+                .name(dto.getName())
+                .description(dto.getDescription())
+                .available(dto.getAvailable())
+                .build();
     }
 
-    public ItemDtoResponse toItemDtoResponse(Item item) {
-        ItemDtoResponse itemDtoResponse = ItemDtoResponse.builder()
+    public ItemDtoResponse toItemDto(Item item) {
+        if (item == null) return null;
+
+        ItemDtoResponse.ItemDtoResponseBuilder builder = ItemDtoResponse.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .available(item.getAvailable());
+
+        if (item.getRequest() != null) {
+            builder.requestId(item.getRequest().getId());
+        }
+
+        return builder.build();
+    }
+
+    public ItemForBookingDto toItemWithBookings(Item item,
+                                                BookingLastAndNextDto lastBooking,
+                                                BookingLastAndNextDto nextBooking,
+                                                List<CommentDtoResponse> comments) {
+        if (item == null) return null;
+
+        return ItemForBookingDto.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .available(item.getAvailable())
+                .lastBooking(lastBooking)
+                .nextBooking(nextBooking)
+                .comments(comments != null ? comments : List.of())
+                .build();
+    }
+
+    public ItemSearchOfTextDto toSearchDto(Item item) {
+        if (item == null) return null;
+
+        return ItemSearchOfTextDto.builder()
                 .id(item.getId())
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
                 .build();
+    }
+
+    public ItemForItemRequestResponseDto toRequestItemDto(Item item) {
+        if (item == null) return null;
+
+        ItemForItemRequestResponseDto.ItemForItemRequestResponseDtoBuilder builder =
+                ItemForItemRequestResponseDto.builder()
+                        .id(item.getId())
+                        .name(item.getName())
+                        .description(item.getDescription())
+                        .available(item.getAvailable());
+
         if (item.getRequest() != null) {
-            itemDtoResponse.setRequestId(item.getRequest().getId());
+            builder.requestId(item.getRequest().getId());
         }
-        return itemDtoResponse;
+
+        return builder.build();
     }
 
-    public ItemForBookingDto toItemForBookingDto(Item item, BookingLastAndNextDto lastBooking,
-                                                 BookingLastAndNextDto nextBooking, List<CommentDtoResponse> comments) {
-        return new ItemForBookingDto(item.getId(),
-                item.getName(),
-                item.getDescription(),
-                item.getAvailable(),
-                lastBooking,
-                nextBooking,
-                comments);
-    }
+    public List<ItemForItemRequestResponseDto> toRequestItemDtoList(List<Item> items) {
+        if (items == null) return List.of();
 
-    public ItemSearchOfTextDto toItemSearchOfTextDto(Item item) {
-        return new ItemSearchOfTextDto(item.getId(),
-                item.getName(),
-                item.getDescription(),
-                item.getAvailable()
-        );
-    }
-
-    public ItemForItemRequestResponseDto toItemForItemRequestResponseDto(Item item) {
-        ItemForItemRequestResponseDto itemForItemRequestResponseDto = ItemForItemRequestResponseDto.builder()
-                .id(item.getId())
-                .name(item.getName())
-                .description(item.getDescription())
-                .available(item.getAvailable())
-                .build();
-        if (item.getRequest() != null) {
-            itemForItemRequestResponseDto.setRequestId(item.getRequest().getId());
-        }
-        return itemForItemRequestResponseDto;
-    }
-
-    public List<ItemForItemRequestResponseDto> toItemForItemRequestsResponseDto(List<Item> item) {
-        return item.stream().map(ItemMapper::toItemForItemRequestResponseDto).collect(Collectors.toList());
+        return items.stream()
+                .filter(Objects::nonNull)
+                .map(ItemMapper::toRequestItemDto)
+                .filter(Objects::nonNull)
+                .toList();
     }
 }

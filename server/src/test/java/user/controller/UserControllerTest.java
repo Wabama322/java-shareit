@@ -67,7 +67,7 @@ public class UserControllerTest {
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated()) // Изменено с isOk() на isCreated()
                 .andExpect(jsonPath("$.id", is(userDtoResponse.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(userDtoResponse.getName())))
                 .andExpect(jsonPath("$.email", is(userDtoResponse.getEmail())));
@@ -121,7 +121,7 @@ public class UserControllerTest {
     @Test
     void deleteUserTestTest() throws Exception {
         mockMvc.perform(delete(PATH_USERS + "/1"))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent()); // Изменено с isOk() на isNoContent()
         verify(userService, times(1))
                 .deleteUser(anyLong());
     }

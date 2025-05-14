@@ -18,7 +18,7 @@ public class UserMapperTest {
                 .name("name")
                 .email("mail@gmail.com")
                 .build();
-        var result = UserMapper.toUserDtoResponse(original);
+        var result = UserMapper.toUserDto(original);
 
         assertNotNull(result);
         assertEquals(original.getId(), result.getId());
@@ -28,7 +28,7 @@ public class UserMapperTest {
     void toUserModelTest() {
         var original = new UserDto(1L, "Alena", "alena@mail.ru");
 
-        var result = UserMapper.toUserModel(original);
+        var result = UserMapper.toUser(original);
 
         assertNotNull(result);
         assertEquals(original.getId(), result.getId());

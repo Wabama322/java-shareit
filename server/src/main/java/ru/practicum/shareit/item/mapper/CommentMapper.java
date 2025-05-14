@@ -9,28 +9,33 @@ import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @UtilityClass
 public class CommentMapper {
-    public Comment toComment(CommentDtoRequest commentDtoRequest, Item item, User author) {
-        Comment comment = Comment.builder()
-                .text(commentDtoRequest.getText())
+
+    public Comment toComment(CommentDtoRequest dto, Item item, User author) {
+        return Comment.builder()
+                .text(dto.getText())
                 .item(item)
                 .author(author)
                 .created(LocalDateTime.now())
                 .build();
-        return comment;
     }
 
-    public List<CommentDtoResponse> toCommentDtoList(List<Comment> commentList) {
-        return commentList.stream()
-                .map(CommentMapper::toCommentDtoResponse)
-                .collect(Collectors.toList());
+    public CommentDtoResponse toDto(Comment comment) {
+        if (comment == null) return null;
+
+        return CommentDtoResponse.builder()
+                .id(comment.getId())
+                .text(comment.getText())
+                .authorName(comment.getAuthor().getName())
+                .created(comment.getCreated())
+                .build();
     }
 
-    public CommentDtoResponse toCommentDtoResponse(Comment comment) {
-        return new CommentDtoResponse(comment.getId(), comment.getText(),
-                comment.getAuthor().getName(), comment.getCreated());
+    public List<CommentDtoResponse> toDtoList(List<Comment> comments) {
+        return comments.stream()
+                .map(CommentMapper::toDto)
+                .toList();
     }
 }

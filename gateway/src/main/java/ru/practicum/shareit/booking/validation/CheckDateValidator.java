@@ -4,24 +4,35 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import ru.practicum.shareit.booking.dto.BookingDtoRequest;
 
-import java.time.LocalDateTime;
-
 public class CheckDateValidator implements ConstraintValidator<StartBeforeEndDateValid, BookingDtoRequest> {
+
     @Override
-    public void initialize(StartBeforeEndDateValid constraintAnnotation) {
+    public boolean isValid(BookingDtoRequest booking, ConstraintValidatorContext context) {
+        if (booking == null) {
+            return true;
+        }
+
+        if (booking.getItemId() == null) {
+            addConstraintViolation(context, "ID вещи должен быть указан");
+            return false;
+        }
+
+        if (booking.getStart() == null || booking.getEnd() == null) {
+            addConstraintViolation(context, "Даты начала и окончания должны быть указаны");
+            return false;
+        }
+
+        if (!booking.getEnd().isAfter(booking.getStart())) {
+            addConstraintViolation(context, "Дата окончания должна быть после даты начала");
+            return false;
+        }
+
+        return true;
     }
 
-    @Override
-    public boolean isValid(BookingDtoRequest bookingDtoRequest, ConstraintValidatorContext constraintValidatorContext) {
-        LocalDateTime start = bookingDtoRequest.getStart();
-        LocalDateTime end = bookingDtoRequest.getEnd();
-        Long itemId = bookingDtoRequest.getItemId();
-        if (start == null || end == null || itemId == null) {
-            return false;
-        }
-        if (!end.isAfter(start)) {
-            return false;
-        }
-        return true;
+    private void addConstraintViolation(ConstraintValidatorContext context, String message) {
+        context.disableDefaultConstraintViolation();
+        context.buildConstraintViolationWithTemplate(message)
+                .addConstraintViolation();
     }
 }

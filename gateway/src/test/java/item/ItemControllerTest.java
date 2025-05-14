@@ -42,7 +42,7 @@ public class ItemControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").exists());
 
         Mockito.verify(itemClient, Mockito.never())
-                .postItem(ArgumentMatchers.any(), ArgumentMatchers.anyLong());
+                .createItem(ArgumentMatchers.any(), ArgumentMatchers.anyLong());
     }
 
     @Test
@@ -54,7 +54,7 @@ public class ItemControllerTest {
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
-        Mockito.verify(itemClient).getItem(itemId, userId);
+        Mockito.verify(itemClient).getItemById(itemId, userId);
     }
 
     @Test
@@ -65,7 +65,7 @@ public class ItemControllerTest {
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().is5xxServerError());
 
-        Mockito.verify(itemClient, Mockito.never()).getItem(itemId, userId);
+        Mockito.verify(itemClient, Mockito.never()).getItemById(itemId, userId);
     }
 
     @Test
@@ -78,7 +78,7 @@ public class ItemControllerTest {
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
-        Mockito.verify(itemClient).getAllItemsUser(userId, 1, 10);
+        Mockito.verify(itemClient).getUserItems(userId, from, size);
     }
 
     @Test
@@ -102,7 +102,7 @@ public class ItemControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.error").exists());
 
         Mockito.verify(itemClient, Mockito.never())
-                .getAllItemsUser(ArgumentMatchers.anyLong(), ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt());
+                .getUserItems(ArgumentMatchers.anyLong(), ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt());
     }
 
     ItemDtoRequest getItemDto(String name) {

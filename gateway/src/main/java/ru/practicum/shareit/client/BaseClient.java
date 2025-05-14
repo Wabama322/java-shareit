@@ -11,6 +11,7 @@ import java.util.Map;
 
 public class BaseClient {
     protected final RestTemplate rest;
+    private static final List<MediaType> DEFAULT_ACCEPT = List.of(MediaType.APPLICATION_JSON);
 
     public BaseClient(RestTemplate rest) {
         this.rest = rest;
@@ -77,9 +78,8 @@ public class BaseClient {
     }
 
     private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path,
-                                                          @Nullable Long userId,
-                                                          @Nullable Map<String, Object> parameters,
-                                                          @Nullable T body) {
+                                                          @Nullable Long userId, @Nullable Map<String, Object> parameters, @Nullable T body) {
+
         HttpEntity<T> requestEntity = new HttpEntity<>(body, createHeaders(userId));
 
         try {
@@ -93,14 +93,14 @@ public class BaseClient {
                     .body(e.getResponseBodyAsByteArray());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Internal server error: " + e.getMessage());
+                    .body(Map.of("error", "Internal server error", "message", e.getMessage()));
         }
     }
 
     private HttpHeaders createHeaders(@Nullable Long userId) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.setAccept(DEFAULT_ACCEPT);
 
         if (userId != null) {
             headers.set(Constants.USER_HEADER, String.valueOf(userId));

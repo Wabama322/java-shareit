@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.ShareItGateway;
 import ru.practicum.shareit.booking.client.BookingClient;
 import ru.practicum.shareit.booking.dto.BookingDtoRequest;
+import ru.practicum.shareit.booking.dto.BookingState;
 import ru.practicum.shareit.user.client.UserClient;
 import ru.practicum.shareit.utill.Constants;
 
@@ -160,9 +161,15 @@ public class BookingControllerTest {
         when(userClient.getUserById(anyLong()))
                 .thenReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
 
+        when(bookingClient.getAllBookingsByOwner(anyLong(), any(BookingState.class), anyInt(), anyInt()))
+                .thenReturn(ResponseEntity.ok().build());
+
         mockMvc.perform(get("/bookings/owner")
                         .header(Constants.USER_HEADER, 1L))
                 .andExpect(status().isNotFound());
+
+        verify(bookingClient, never())
+                .getAllBookingsByOwner(anyLong(), any(BookingState.class), anyInt(), anyInt());
     }
 
     private BookingDtoRequest getBookingDtoRequest(LocalDateTime start, LocalDateTime end) {
