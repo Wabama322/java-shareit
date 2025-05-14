@@ -20,12 +20,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @Validated
 public class BookingController {
-    private final String BOOKING_ID_PATH_VARIABLE = "booking-id";
-    private final String BOOKING_ID_PATH = "/{" + BOOKING_ID_PATH_VARIABLE + "}";
-    private final List<String> ALLOWED_STATES = List.of(
+    private final String bookingIdPathVariable = "booking-id";
+    private final String bookingIdPath = "/{" + bookingIdPathVariable + "}";
+    private final List<String> allowedStates = List.of(
             "ALL", "CURRENT", "PAST", "FUTURE", "WAITING", "REJECTED"
     );
-    private final String DEFAULT_STATE = "ALL";
+    private final String defaultState = "ALL";
     private final BookingService service;
 
     @PostMapping
@@ -36,18 +36,18 @@ public class BookingController {
         return ResponseEntity.ok(service.addBooking(userId, bookingDtoRequest));
     }
 
-    @PatchMapping(BOOKING_ID_PATH)
+    @PatchMapping(bookingIdPath)
     public ResponseEntity<BookingForResponse> updateBooking(
-            @PathVariable(BOOKING_ID_PATH_VARIABLE) @Positive long bookingId,
+            @PathVariable(bookingIdPathVariable) @Positive long bookingId,
             @RequestHeader(Constants.USER_HEADER) @Positive long userId,
             @RequestParam Boolean approved) {
         log.info("PATCH запрос на обновление статуса бронирования {} от пользователя {}", bookingId, userId);
         return ResponseEntity.ok(service.updateBooking(bookingId, userId, approved));
     }
 
-    @GetMapping(BOOKING_ID_PATH)
+    @GetMapping(bookingIdPath)
     public ResponseEntity<BookingForResponse> getBooking(
-            @PathVariable(BOOKING_ID_PATH_VARIABLE) @Positive long bookingId,
+            @PathVariable(bookingIdPathVariable) @Positive long bookingId,
             @RequestHeader(Constants.USER_HEADER) @Positive long userId) {
         log.info("GET запрос на получение бронирования {} от пользователя {}", bookingId, userId);
         return ResponseEntity.ok(service.getBooking(bookingId, userId));
@@ -55,7 +55,7 @@ public class BookingController {
 
     @GetMapping
     public ResponseEntity<List<BookingForResponse>> getAllBookingByUser(
-            @RequestParam(defaultValue = DEFAULT_STATE) String state,
+            @RequestParam(defaultValue = defaultState) String state,
             @RequestHeader(Constants.USER_HEADER) @Positive long userId,
             @RequestParam(name = "from", defaultValue = "#{T(java.lang.Integer).MAX_VALUE}") int from,
             @RequestParam(name = "size", defaultValue = "20") @Positive int size) {
@@ -66,7 +66,7 @@ public class BookingController {
 
     @GetMapping("/owner")
     public ResponseEntity<List<BookingForResponse>> getAllBookingByOwner(
-            @RequestParam(defaultValue = DEFAULT_STATE) String state,
+            @RequestParam(defaultValue = defaultState) String state,
             @RequestHeader(Constants.USER_HEADER) @Positive long userId,
             @RequestParam(name = "from", defaultValue = "#{T(java.lang.Integer).MAX_VALUE}") int from,
             @RequestParam(name = "size", defaultValue = "20") @Positive int size) {
@@ -76,7 +76,7 @@ public class BookingController {
     }
 
     private void validateState(String state) {
-        if (!ALLOWED_STATES.contains(state)) {
+        if (!allowedStates.contains(state)) {
             throw new IllegalArgumentException("Unknown state: " + state);
         }
     }
