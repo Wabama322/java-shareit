@@ -104,34 +104,49 @@ public class BookingServiceImpl implements BookingService {
     private List<Booking> getUserBookings(StateBooking state, long userId, Pageable pageable) {
         LocalDateTime now = LocalDateTime.now();
 
-        return switch (state) {
-            case ALL -> bookingRepository.findByBookerIdOrderByStartDesc(userId, pageable);
-            case CURRENT -> bookingRepository.findByBookerIdAndStartLessThanEqualAndEndGreaterThanEqualOrderByStartDesc(
-                    userId, now, now, pageable);
-            case PAST -> bookingRepository.findByBookerIdAndEndBeforeAndStatusOrderByStartDesc(
-                    userId, now, APPROVED, pageable);
-            case FUTURE -> bookingRepository.findByBookerIdAndStartAfterOrderByStartDesc(userId, now, pageable);
-            case WAITING -> bookingRepository.findByBookerIdAndStatusOrderByStartDesc(userId, WAITING, pageable);
-            case REJECTED -> bookingRepository.findByBookerIdAndStatusOrderByStartDesc(userId, REJECTED, pageable);
-        };
+        switch (state) {
+            case ALL:
+                return bookingRepository.findByBookerIdOrderByStartDesc(userId, pageable);
+            case CURRENT:
+                return bookingRepository.findByBookerIdAndStartLessThanEqualAndEndGreaterThanEqualOrderByStartDesc(
+                        userId, now, now, pageable);
+            case PAST:
+                return bookingRepository.findByBookerIdAndEndBeforeAndStatusOrderByStartDesc(
+                        userId, now, APPROVED, pageable);
+            case FUTURE:
+                return bookingRepository.findByBookerIdAndStartAfterOrderByStartDesc(userId, now, pageable);
+            case WAITING:
+                return bookingRepository.findByBookerIdAndStatusOrderByStartDesc(userId, WAITING, pageable);
+            case REJECTED:
+                return bookingRepository.findByBookerIdAndStatusOrderByStartDesc(userId, REJECTED, pageable);
+            default:
+                throw new IllegalArgumentException("Unknown state: " + state);
+        }
     }
 
     private List<Booking> getOwnerBookings(StateBooking state, long userId, Pageable pageable) {
         LocalDateTime now = LocalDateTime.now();
 
-        return switch (state) {
-            case ALL -> bookingRepository.findByItemOwnerIdOrderByStartDesc(userId, pageable);
-            case CURRENT -> bookingRepository.findByItemOwnerIdAndStartLessThanEqualAndEndGreaterThanEqualOrderByStartDesc(
-                    userId, now, now, pageable);
-            case PAST -> bookingRepository.findByItemOwnerIdAndEndBeforeAndStatusOrderByStartDesc(
-                    userId, now, APPROVED, pageable);
-            case FUTURE -> bookingRepository.findByItemOwnerIdAndStartAfterOrderByStartDesc(userId, now, pageable);
-            case WAITING -> bookingRepository.findByItemOwnerIdAndStatusOrderByStartDesc(userId, WAITING, pageable);
-            case REJECTED -> bookingRepository.findByItemOwnerIdAndStatusOrderByStartDesc(userId, REJECTED, pageable);
-        };
+        switch (state) {
+            case ALL:
+                return bookingRepository.findByItemOwnerIdOrderByStartDesc(userId, pageable);
+            case CURRENT:
+                return bookingRepository.findByItemOwnerIdAndStartLessThanEqualAndEndGreaterThanEqualOrderByStartDesc(
+                        userId, now, now, pageable);
+            case PAST:
+                return bookingRepository.findByItemOwnerIdAndEndBeforeAndStatusOrderByStartDesc(
+                        userId, now, APPROVED, pageable);
+            case FUTURE:
+                return bookingRepository.findByItemOwnerIdAndStartAfterOrderByStartDesc(userId, now, pageable);
+            case WAITING:
+                return bookingRepository.findByItemOwnerIdAndStatusOrderByStartDesc(userId, WAITING, pageable);
+            case REJECTED:
+                return bookingRepository.findByItemOwnerIdAndStatusOrderByStartDesc(userId, REJECTED, pageable);
+            default:
+                throw new IllegalArgumentException("Unknown state: " + state);
+        }
     }
 
-    // Вспомогательные методы
     private void validateBookingCreation(BookingDtoRequest dto, Item item, User booker) {
         if (item.getOwner().equals(booker)) {
             throw new BadRequestException("Владелец не может бронировать свою вещь");
